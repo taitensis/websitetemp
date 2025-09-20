@@ -6,13 +6,6 @@ import RecipeSections from "@/components/recipes/RecipeSections.tsx";
 
 const imageOnRight = true;
 
-const cover = data.images?.[0]?.src ?? null;
-const coverSrc = cover
-  ? cover.startsWith("/")
-    ? import.meta.env.BASE_URL + cover.slice(1)
-    : cover
-  : null;
-
 // 1) Build-time paths
 export async function getStaticPaths() {
   const entries = await getCollection("recipes");
@@ -22,11 +15,15 @@ export async function getStaticPaths() {
   }));
 }
 
-// 2) Page data
+// 2) Page data (define `data` BEFORE using it)
 const { entry } = Astro.props;
 const data = entry.data as any;
 const { Content } = await entry.render();
 
+// base path for GitHub Pages
+const base = import.meta.env.BASE_URL;
+
+// derived values
 const ig = data.ingredient_groups ?? [];
 const st = data.steps ?? [];
 const nt = data.notes ?? [];
@@ -34,24 +31,23 @@ const nt = data.notes ?? [];
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+const cover = data.images?.[0]?.src ?? null;
+const coverSrc = cover ? (cover.startsWith("/") ? base + cover.slice(1) : cover) : null;
+
 const timeParts = [
   data.time?.prep ? `Prep ${data.time.prep}m` : null,
   data.time?.cook ? `Cook ${data.time.cook}m` : null,
   data.time?.total ? `Total ${data.time.total}m` : null,
 ].filter(Boolean);
 ---
-
 <BaseLayout title={data.title} description={data.tags?.join(", ")}>
   <article>
-    {cover && (
+    {coverSrc && (
       <section class="mb-8">
-        
         <!-- Mobile layout -->
         <div class="md:hidden space-y-4">
-          <!-- H1 -->
           <h1 class="text-[clamp(1.75rem,2.5vw+1rem,2.75rem)] font-bold">{data.title}</h1>
 
-          <!-- 2-col grid: left info/tags, right portrait image -->
           <div class="grid grid-cols-[1fr_7.5rem] gap-4 items-start">
             <!-- Left: info + tags -->
             <div class="min-w-0 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)] text-slate-600 dark:text-slate-300 self-center">
@@ -65,7 +61,12 @@ const timeParts = [
                 <div class="mt-3 flex flex-wrap gap-2">
                   <span class="sr-only">Tags</span>
                   {data.tags.map((tag: string) => (
-                    <a href=`/tags/${slugify(tag)}` class="inline-block" title={`View ${tag} recipes`}>
+                    <a
+                      href={`${base}tags/${slugify(tag)}`}
+                      class="inline-block"
+                      title={`View ${tag} recipes`}
+                      rel="tag"
+                    >
                       <Badge variant="secondary" className="capitalize">{tag}</Badge>
                     </a>
                   ))}
@@ -73,7 +74,7 @@ const timeParts = [
               ) : null}
             </div>
 
-            <!-- Right: image (9/19 portrait) -->
+            <!-- Right: image (portrait on mobile) -->
             <figure class="w-28 sm:w-32">
               <div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-100 shadow">
                 <img
@@ -87,7 +88,6 @@ const timeParts = [
           </div>
         </div>
 
-
         <!-- Desktop layout -->
         <div class="hidden md:grid md:grid-cols-2 md:gap-8 md:items-start">
           <!-- TEXT COLUMN -->
@@ -98,7 +98,12 @@ const timeParts = [
               <div class="flex flex-wrap items-center gap-2 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)]">
                 <span class="sr-only">Tags</span>
                 {data.tags.map((tag: string) => (
-                  <a href=`/tags/${slugify(tag)}` class="inline-block" title={`View ${tag} recipes`}>
+                  <a
+                    href={`${base}tags/${slugify(tag)}`}
+                    class="inline-block"
+                    title={`View ${tag} recipes`}
+                    rel="tag"
+                  >
                     <Badge variant="secondary" className="capitalize">{tag}</Badge>
                   </a>
                 ))}
