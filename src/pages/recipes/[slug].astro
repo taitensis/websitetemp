@@ -1,0 +1,133 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { Badge } from "@/components/ui/badge";
+import RecipeSections from "@/components/recipes/RecipeSections.tsx";
+
+const imageOnRight = true;
+
+// 1) Build-time paths
+export async function getStaticPaths() {
+  const entries = await getCollection("recipes");
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+// 2) Page data
+const { entry } = Astro.props;
+const data = entry.data as any;
+const { Content } = await entry.render();
+
+const ig = data.ingredient_groups ?? [];
+const st = data.steps ?? [];
+const nt = data.notes ?? [];
+
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+const cover = data.images?.[0]?.src ?? null;
+const timeParts = [
+  data.time?.prep ? `Prep ${data.time.prep}m` : null,
+  data.time?.cook ? `Cook ${data.time.cook}m` : null,
+  data.time?.total ? `Total ${data.time.total}m` : null,
+].filter(Boolean);
+---
+
+<BaseLayout title={data.title} description={data.tags?.join(", ")}>
+  <article>
+    {cover && (
+      <section class="mb-8">
+        
+        <!-- Mobile layout -->
+        <div class="md:hidden space-y-4">
+          <!-- H1 -->
+          <h1 class="text-[clamp(1.75rem,2.5vw+1rem,2.75rem)] font-bold">{data.title}</h1>
+
+          <!-- 2-col grid: left info/tags, right portrait image -->
+          <div class="grid grid-cols-[1fr_7.5rem] gap-4 items-start">
+            <!-- Left: info + tags -->
+            <div class="min-w-0 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)] text-slate-600 dark:text-slate-300 self-center">
+              <div class="space-y-1">
+                {typeof data.yield === "number" && <p>For {data.yield} people</p>}
+                {data.difficulty && <p class="capitalize">Difficulty: {data.difficulty}</p>}
+                {timeParts.length > 0 && <p>{timeParts.join(" • ")}</p>}
+              </div>
+
+              {data.tags?.length ? (
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="sr-only">Tags</span>
+                  {data.tags.map((tag: string) => (
+                    <a href={`/tags/${slugify(tag)}`} class="inline-block" title={`View ${tag} recipes`}>
+                      <Badge variant="secondary" className="capitalize">{tag}</Badge>
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <!-- Right: image (9/19 portrait) -->
+            <figure class="w-28 sm:w-32">
+              <div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-100 shadow">
+                <img
+                  src={cover}
+                  alt={data.images?.[0]?.alt || data.title}
+                  class="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            </figure>
+          </div>
+        </div>
+
+
+        <!-- Desktop layout (hidden < md, visible ≥ md) -->
+        <div class="hidden md:grid md:grid-cols-2 md:gap-8 md:items-start">
+          <!-- TEXT COLUMN -->
+          <header class={`space-y-6 self-center ${imageOnRight ? "md:order-1" : "md:order-2"}`}>
+            <h1 class="text-[clamp(1.75rem,2.5vw+1rem,2.75rem)] font-bold align-center">{data.title}</h1>
+
+            {data.tags?.length ? (
+              <div class="flex flex-wrap items-center gap-2 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)]">
+                <span class="sr-only">Tags</span>
+                {data.tags.map((tag: string) => (
+                  <a href={`/tags/${slugify(tag)}`} class="inline-block" title={`View ${tag} recipes`}>
+                    <Badge variant="secondary" className="capitalize">{tag}</Badge>
+                  </a>
+                ))}
+              </div>
+            ) : null}
+
+            <div class="flex flex-col gap-2 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)] text-slate-600 dark:text-slate-300">
+              {typeof data.yield === "number" && <p>For {data.yield} people</p>}
+              {data.difficulty && <p class="capitalize">Difficulty: {data.difficulty}</p>}
+              {timeParts.length > 0 && <p>{timeParts.join(" • ")}</p>}
+            </div>
+          </header>
+
+          <!-- IMAGE COLUMN -->
+          <figure class={`mx-auto w-full ${imageOnRight ? "md:order-2" : "md:order-1"}`}>
+            <div class="relative aspect-[3/4] md:aspect-[4/3] overflow-hidden rounded-2xl bg-slate-100 shadow">
+              <img
+                src={cover}
+                alt={data.images?.[0]?.alt || data.title}
+                class="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </figure>
+        </div>
+      </section>
+    )}
+
+    <RecipeSections
+      client:visible
+      recipeId={entry.slug}
+      ingredients={ig}
+      steps={st}
+      notes={nt}
+      nutrition={data.nutrition}
+    />
+  </article>
+</BaseLayout>
