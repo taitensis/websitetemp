@@ -13,18 +13,22 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
+/* ---------------- types ---------------- */
+
 export type RecipeItem = {
   slug: string;
   title: string;
   tags?: string[];
   total?: number | null; // total minutes
-  date?: Date | null; // ISO date
+  date?: Date | null; // ensure you pass Date (or adapt below)
   difficulty?: "easy" | "medium" | "hard" | null;
-  image?: string | null;
+  image?: string | null; // e.g. "/images/..." or absolute
   summary?: string | null;
 };
 
 type Props = { items: RecipeItem[] };
+
+/* -------------- component --------------- */
 
 export default function RecipesIndex({ items }: Props) {
   const [query, setQuery] = React.useState("");
@@ -44,15 +48,13 @@ export default function RecipesIndex({ items }: Props) {
 
   function toggleTag(tag: string) {
     const s = new Set(activeTags);
-    if (s.has(tag)) s.delete(tag);
-    else s.add(tag);
+    s.has(tag) ? s.delete(tag) : s.add(tag);
     setActiveTags(s);
   }
 
   function toggleDifficulty(value: string) {
     const s = new Set(difficulties);
-    if (s.has(value)) s.delete(value);
-    else s.add(value);
+    s.has(value) ? s.delete(value) : s.add(value);
     setDifficulties(s);
   }
 
@@ -73,13 +75,13 @@ export default function RecipesIndex({ items }: Props) {
 
     out.sort((a, b) => {
       if (sort === "newest") {
-        const bDate = b.date ? b.date.getTime() : 0;
-        const aDate = a.date ? a.date.getTime() : 0;
+        const bDate = b.date instanceof Date ? b.date.getTime() : 0;
+        const aDate = a.date instanceof Date ? a.date.getTime() : 0;
         return bDate - aDate;
       }
       if (sort === "oldest") {
-        const aDate = a.date ? a.date.getTime() : 0;
-        const bDate = b.date ? b.date.getTime() : 0;
+        const aDate = a.date instanceof Date ? a.date.getTime() : 0;
+        const bDate = b.date instanceof Date ? b.date.getTime() : 0;
         return aDate - bDate;
       }
       if (sort === "shortest")
@@ -193,35 +195,35 @@ export default function RecipesIndex({ items }: Props) {
   );
 }
 
+/* -------------- card --------------- */
+
 function RecipeCard({ item }: { item: RecipeItem }) {
+  const base = import.meta.env.BASE_URL; // "/nourriture-quotidienne/" on GH Pages
+  const href = `${base}recipes/${item.slug}`;
+  const imgSrc = item.image
+    ? item.image.startsWith("/")
+      ? base + item.image.slice(1)
+      : item.image
+    : null;
+
   return (
     <Card
       className="overflow-hidden px-3 py-3 group border border-slate-200 dark:border-slate-800
-       transition-[color,box-shadow] hover:border-ring hover:ring-ring/50 hover:ring-[3px]">
-      {item.image && (
-        <a
-          href={`${import.meta.env.BASE_URL}recipes/${item.slug}`}
-          className="block">
+                 transition-[color,box-shadow] hover:border-ring hover:ring-ring/50 hover:ring-[3px]">
+      {imgSrc && (
+        <a href={href} className="block">
           <div className="relative aspect-[4/3]">
-            {item.image ? (
-              <img
-                src={item.image}
-                alt={item.title}
-                className="absolute inset-0 block h-full w-full object-cover duration-300 transition group-hover:brightness-105"
-                loading="lazy"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-400">
-                No image
-              </div>
-            )}
+            <img
+              src={imgSrc}
+              alt={item.title}
+              className="absolute inset-0 block h-full w-full object-cover duration-300 transition group-hover:brightness-105"
+              loading="lazy"
+            />
           </div>
         </a>
       )}
       <CardContent className="p-4 space-y-3">
-        <a
-          href={`${import.meta.env.BASE_URL}recipes/${item.slug}`}
-          className="block">
+        <a href={href} className="block">
           <h3 className="font-semibold leading-tight line-clamp-2">
             {item.title}
           </h3>
@@ -245,6 +247,8 @@ function RecipeCard({ item }: { item: RecipeItem }) {
     </Card>
   );
 }
+
+/* -------------- empty --------------- */
 
 function EmptyState() {
   return (
