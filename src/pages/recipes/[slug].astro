@@ -6,6 +6,13 @@ import RecipeSections from "@/components/recipes/RecipeSections.tsx";
 
 const imageOnRight = true;
 
+const cover = data.images?.[0]?.src ?? null;
+const coverSrc = cover
+  ? cover.startsWith("/")
+    ? import.meta.env.BASE_URL + cover.slice(1)
+    : cover
+  : null;
+
 // 1) Build-time paths
 export async function getStaticPaths() {
   const entries = await getCollection("recipes");
@@ -27,8 +34,6 @@ const nt = data.notes ?? [];
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-const cover = data.images?.[0]?.src ?? null;
-const coverSrc = cover?.startsWith("/") ? cover : cover;
 const timeParts = [
   data.time?.prep ? `Prep ${data.time.prep}m` : null,
   data.time?.cook ? `Cook ${data.time.cook}m` : null,
