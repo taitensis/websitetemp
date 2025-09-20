@@ -199,7 +199,9 @@ function RecipeCard({ item }: { item: RecipeItem }) {
       className="overflow-hidden px-3 py-3 group border border-slate-200 dark:border-slate-800
        transition-[color,box-shadow] hover:border-ring hover:ring-ring/50 hover:ring-[3px]">
       {item.image && (
-        <a href={`/recipes/${item.slug}`} className="block">
+        <a
+          href={`${import.meta.env.BASE_URL}recipes/${item.slug}`}
+          className="block">
           <div className="relative aspect-[4/3]">
             {item.image ? (
               <img
@@ -217,7 +219,9 @@ function RecipeCard({ item }: { item: RecipeItem }) {
         </a>
       )}
       <CardContent className="p-4 space-y-3">
-        <a href={`/recipes/${item.slug}`} className="block">
+        <a
+          href={`${import.meta.env.BASE_URL}recipes/${item.slug}`}
+          className="block">
           <h3 className="font-semibold leading-tight line-clamp-2">
             {item.title}
           </h3>

@@ -52,19 +52,19 @@ export default function MobileMenu() {
           id="mobile-menu"
           className="absolute right-0 top-full mt-2 w-40 rounded-lg bg-white shadow-lg dark:bg-slate-900">
           <a
-            href="/"
+            href={import.meta.env.BASE_URL}
             className="block px-4 py-2 hover:text-amber-600"
             onClick={() => setOpen(false)}>
             Home
           </a>
           <a
-            href="/recipes"
+            href={`${import.meta.env.BASE_URL}recipes`}
             className="block px-4 py-2 hover:text-amber-600"
             onClick={() => setOpen(false)}>
             Recipes
           </a>
           <a
-            href="/about"
+            href={`${import.meta.env.BASE_URL}about`}
             className="block px-4 py-2 hover:text-amber-600"
             onClick={() => setOpen(false)}>
             About
