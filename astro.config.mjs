@@ -7,8 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://taitensis.github.io",
-  base: "/nourriture-quotidienne",
+  site: "https://taitensis.github.io/nourriture-quotidienne",
 
   integrations: [react(), mdx()],
 
