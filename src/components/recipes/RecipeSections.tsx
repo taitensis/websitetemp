@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const paneClass = "outline-none ml-4 max-w-3xl text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]";
+
 type IngredientGroup = { title?: string; ingredients: string[] };
 type Nutrition = {
   calories?: number;
@@ -177,7 +179,7 @@ export default function RecipeSections({
           <TabsContent
             value="ingredients"
             aria-labelledby="tab-ingredients"
-            className="outline-none ml-4 max-w-3xl text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]">
+            className={paneClass}>
             <h2 className="sr-only print:not-sr-only print:mb-3">
               Ingredients
             </h2>
@@ -222,7 +224,7 @@ export default function RecipeSections({
           <TabsContent
             value="steps"
             aria-labelledby="tab-steps"
-            className="outline-none ml-4 max-w-3xl text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]">
+            className={paneClass}>
             <h2 className="sr-only print:not-sr-only print:mb-3">Steps</h2>
             {steps.length ? (
               <ol className="space-y-3">
@@ -248,11 +250,11 @@ export default function RecipeSections({
             <TabsContent
               value="notes"
               aria-labelledby="tab-notes"
-              className="outline-none ml-4 max-w-3xl text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]">
-              <h2 className="sr-only print:not-sr-only print:mb-3">Notes</h2>
-              <ul className="list-none pl-6 space-y-3">
+              className={paneClass}>
+              <h2 className="sr-only print:not-sr-only print:mb-3 marker:text-slate-400">Notes</h2>
+              <ul className="list-disc pl-6 space-y-3">
                 {notes.map((n, i) => (
-                  <li key={i} className="items-center">
+                  <li key={i} className="leading-relaxed break-words text-slate-600 dark:text-slate-300">
                     {n}
                   </li>
                 ))}
@@ -265,7 +267,7 @@ export default function RecipeSections({
             <TabsContent
               value="nutritional-values"
               aria-labelledby="tab-nutritional-values"
-              className="outline-none text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]">
+              className={paneClass}>
               <h2 className="sr-only print:not-sr-only print:mb-3">
                 Nutritional Values
               </h2>
