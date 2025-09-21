@@ -228,11 +228,13 @@ export default function RecipeSections({
               <ol className="space-y-3">
                 {steps.map((s, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-muted-foreground font-semibold">
+                    <div className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-muted-foreground font-semibold">
                       {i + 1}
-                    </span>
+                    </div>
 
-                    <p className="leading-relaxed text-red">{s}</p>
+                    <p className="flex-1 min-w-0 leading-relaxed break-words">
+                      {s}
+                    </p>
                   </li>
                 ))}
               </ol>

@@ -43,94 +43,94 @@ const timeParts = [
 <BaseLayout title={data.title} description={data.tags?.join(", ")}>
   <article>
     {coverSrc && (
-      <section class="mb-8">
-        <!-- Mobile layout -->
-        <div class="md:hidden space-y-4">
-          <h1 class="text-[clamp(1.75rem,2.5vw+1rem,2.75rem)] font-bold">{data.title}</h1>
+  <section class="mb-8">
+    {/* Mobile layout */}
+    <div class="md:hidden space-y-4">
+      <h1 class="text-[clamp(1.75rem,2.5vw+1rem,2.75rem)] font-bold text-center text-balance">{data.title}</h1>
 
-          <div class="grid grid-cols-[1fr_7.5rem] gap-4 items-start">
-            <!-- Left: info + tags -->
-            <div class="min-w-0 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)] text-slate-600 dark:text-slate-300 self-center">
-              <div class="space-y-1">
-                {typeof data.yield === "number" && <p>For {data.yield} people</p>}
-                {data.difficulty && <p class="capitalize">Difficulty: {data.difficulty}</p>}
-                {timeParts.length > 0 && <p>{timeParts.join(" • ")}</p>}
-              </div>
-
-              {data.tags?.length ? (
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <span class="sr-only">Tags</span>
-                  {data.tags.map((tag: string) => (
-                    <a
-                      href={`${base}tags/${slugify(tag)}`}
-                      class="inline-block"
-                      title={`View ${tag} recipes`}
-                      rel="tag"
-                    >
-                      <Badge variant="secondary" className="capitalize">{tag}</Badge>
-                    </a>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-
-            <!-- Right: image (portrait on mobile) -->
-            <figure class="w-28 sm:w-32">
-              <div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-100 shadow">
-                <img
-                  src={coverSrc}
-                  alt={data.images?.[0]?.alt || data.title}
-                  class="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            </figure>
+      <div class="grid grid-cols-[1fr_45%] gap-4 items-stretch">
+        {/* Left: info + tags */}
+        <div class="min-w-0 text-[clamp(1rem,0.4vw+0.9rem,1.125rem)] text-slate-600 dark:text-slate-300 self-center">
+          <div class="space-y-1">
+            {typeof data.yield === "number" && <p>For {data.yield} people</p>}
+            {data.difficulty && <p class="capitalize">Difficulty: {data.difficulty}</p>}
+            {timeParts.length > 0 && <p>{timeParts.join(" • ")}</p>}
           </div>
+
+          {data.tags?.length ? (
+            <div class="mt-3 flex flex-wrap gap-2 text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]">
+              <span class="sr-only">Tags</span>
+              {data.tags.map((tag: string) => (
+                <a
+                  href={`${base}tags/${slugify(tag)}`}
+                  class="inline-block"
+                  title={`View ${tag} recipes`}
+                  rel="tag"
+                >
+                  <Badge variant="secondary" className="capitalize">{tag}</Badge>
+                </a>
+              ))}
+            </div>
+          ) : null}
         </div>
 
-        <!-- Desktop layout -->
-        <div class="hidden md:grid md:grid-cols-2 md:gap-8 md:items-start">
-          <!-- TEXT COLUMN -->
-          <header class={`space-y-6 self-center ${imageOnRight ? "md:order-1" : "md:order-2"}`}>
-            <h1 class="text-[clamp(1.75rem,2.5vw+1rem,2.75rem)] font-bold text-center">{data.title}</h1>
+        {/* Right: image (portrait on mobile) */}
+        <figure class="h-full self-stretch">
+          <div class="relative overflow-hidden rounded-xl bg-slate-100 shadow h-full aspect-auto">
+            <img
+              src={coverSrc}
+              alt={data.images?.[0]?.alt || data.title}
+              class="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        </figure>
+      </div>
+    </div>
 
-            {data.tags?.length ? (
-              <div class="flex flex-wrap items-center gap-2 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)]">
-                <span class="sr-only">Tags</span>
-                {data.tags.map((tag: string) => (
-                  <a
-                    href={`${base}tags/${slugify(tag)}`}
-                    class="inline-block"
-                    title={`View ${tag} recipes`}
-                    rel="tag"
-                  >
-                    <Badge variant="secondary" className="capitalize">{tag}</Badge>
-                  </a>
-                ))}
-              </div>
-            ) : null}
+    {/* Desktop layout */}
+    <div class="hidden md:grid md:grid-cols-2 md:gap-8 md:items-stretch">
+      {/* TEXT COLUMN */}
+      <header class={`space-y-6 self-center ${imageOnRight ? "md:order-1" : "md:order-2"}`}>
+        <h1 class="text-[clamp(1.75rem,2.5vw+1rem,2.75rem)] font-bold text-center text-balance">{data.title}</h1>
 
-            <div class="flex flex-col gap-2 text-[clamp(0.875rem,0.3vw+0.8rem,1rem)] text-slate-600 dark:text-slate-300">
-              {typeof data.yield === "number" && <p>For {data.yield} people</p>}
-              {data.difficulty && <p class="capitalize">Difficulty: {data.difficulty}</p>}
-              {timeParts.length > 0 && <p>{timeParts.join(" • ")}</p>}
-            </div>
-          </header>
+        {data.tags?.length ? (
+          <div class="flex flex-wrap items-center gap-2 text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]">
+            <span class="sr-only">Tags</span>
+            {data.tags.map((tag: string) => (
+              <a
+                href={`${base}tags/${slugify(tag)}`}
+                class="inline-block"
+                title={`View ${tag} recipes`}
+                rel="tag"
+              >
+                <Badge variant="secondary" className="capitalize">{tag}</Badge>
+              </a>
+            ))}
+          </div>
+        ) : null}
 
-          <!-- IMAGE COLUMN -->
-          <figure class={`mx-auto w-full ${imageOnRight ? "md:order-2" : "md:order-1"}`}>
-            <div class="relative aspect-[3/4] md:aspect-[4/3] overflow-hidden rounded-2xl bg-slate-100 shadow">
-              <img
-                src={coverSrc}
-                alt={data.images?.[0]?.alt || data.title}
-                class="absolute inset-0 h-full w-full object-cover"
-                loading="lazy"
-              />
-            </div>
-          </figure>
+        <div class="flex flex-col gap-2 text-[clamp(1rem,0.4vw+0.9rem,1.125rem)] text-slate-600 dark:text-slate-300">
+          {typeof data.yield === "number" && <p>For {data.yield} people</p>}
+          {data.difficulty && <p class="capitalize">Difficulty: {data.difficulty}</p>}
+          {timeParts.length > 0 && <p>{timeParts.join(" • ")}</p>}
         </div>
-      </section>
-    )}
+      </header>
+
+      {/* IMAGE COLUMN */}
+      <figure class={`mx-auto w-full ${imageOnRight ? "md:order-2" : "md:order-1"} self-stretch`}>
+        <div class="relative overflow-hidden rounded-2xl bg-slate-100 shadow md:h-full md:aspect-auto aspect-[3/4]">
+          <img
+            src={coverSrc}
+            alt={data.images?.[0]?.alt || data.title}
+            class="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </figure>
+    </div>
+  </section>
+)}
 
     <RecipeSections
       client:visible
