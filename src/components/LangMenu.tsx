@@ -1,16 +1,15 @@
-import * as React from 'react';
-import { Check, Languages } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import * as React from "react";
+import { Languages } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { buttonVariants } from '@/components/ui/button';
+} from "@/components/ui/dropdown-menu";
 
 type Item = { label: string; url: string; current: boolean };
 
@@ -23,31 +22,45 @@ export default function LangMenu({ items, currentLabel }: { items: Item[]; curre
     location.assign(target.toString());
   }, []);
 
+  const active = React.useMemo(
+    () => items.find((it) => it.current)?.url ?? items[0]?.url ?? "",
+    [items]
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Change language" className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`Change language, current ${currentLabel}`}
+          className="rounded-full"
+        >
           <Languages className="h-5 w-5" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start" className="">
-        <DropdownMenuGroup>
+      <DropdownMenuContent align="start" sideOffset={8} aria-label="Select language">
+        <DropdownMenuLabel>Language</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup
+          value={active}
+          onValueChange={(value) => {
+            if (value && value !== active) {
+              go(value);
+            }
+          }}
+        >
           {items.map((it) => (
-            <DropdownMenuItem
+            <DropdownMenuRadioItem
               key={it.label}
-              onSelect={() => go(it.url)}
-              aria-current={it.current ? 'true' : undefined}
-              className={[
-                'flex w-full items-center justify-between',
-                it.current ? 'text-primary font-semibold' : '',
-              ].join(' ')}
+              value={it.url}
+              aria-label={`Switch to ${it.label}`}
             >
-              <span>{it.label}</span>
-              {it.current && <Check className="h-4 w-4 opacity-80" aria-hidden="true" />}
-            </DropdownMenuItem>
+              {it.label}
+            </DropdownMenuRadioItem>
           ))}
-        </DropdownMenuGroup>
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

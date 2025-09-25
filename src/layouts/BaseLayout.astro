@@ -1,7 +1,6 @@
 ---
-import type { ImageMetadata } from 'astro';
-import { Button } from '@/components/ui/button';
-import { buttonVariants } from '@/components/ui/button';
+import type { ImageMetadata } from "astro";
+import { buttonVariants } from "@/components/ui/button";
 
 export interface Props {
   title?: string;
@@ -13,35 +12,35 @@ export interface Props {
   mainClass?: string;
 }
 
-import '../styles/global.css';
-import ThemeToggle from '@/components/ThemeToggle';
-import MobileMenu from '@/components/MobileMenu';
-import LangMenu from '@/components/LangMenu';
+import "../styles/global.css";
+import ThemeToggle from "@/components/ThemeToggle";
+import MobileMenu from "@/components/MobileMenu";
+import LangMenu from "@/components/LangMenu";
 
-import { useT, type Locale } from '@/i18n/home';
-import { LOCALES, DEFAULT_LOCALE, getLocaleLabel } from '@/i18n/locales';
-import { getRelativeLocaleUrl } from 'astro:i18n';
+import { useT, type Locale } from "@/i18n/home";
+import { LOCALES, DEFAULT_LOCALE, getLocaleLabel } from "@/i18n/locales";
+import { getRelativeLocaleUrl } from "astro:i18n";
 
 const current = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
 const tt = useT(current);
 
 const {
-  title = 'Nourriture Quotidienne',
-  description = 'A project to log my personal recipe collection.',
+  title = "Nourriture Quotidienne",
+  description = "A project to log my personal recipe collection.",
   image,
   noIndex = false,
   bgUrl,
-  mainClass = '',
+  mainClass = "",
 } = Astro.props;
 
-const normalize = (v?: string | ImageMetadata) => (typeof v === 'string' ? v : v?.src);
+const normalize = (v?: string | ImageMetadata) => (typeof v === "string" ? v : v?.src);
 const bg = normalize(bgUrl);
 
-const overlayClassLight = 'bg-white/80'; // or 'bg-background/80'
-const overlayClassDark = 'bg-black/70'; // or 'bg-background/80'
+const overlayClassLight = "bg-white/80"; // or 'bg-background/80'
+const overlayClassDark = "bg-black/70"; // or 'bg-background/80'
 
-const site = typeof Astro.site === 'string' ? Astro.site : '';
-const pageTitle = title === 'Nourriture Quotidienne' ? title : `${title} · Nourriture Quotidienne`;
+const site = typeof Astro.site === "string" ? Astro.site : "";
+const pageTitle = title === "Nourriture Quotidienne" ? title : `${title} · Nourriture Quotidienne`;
 const canonical = site ? new URL(Astro.url.pathname, site).toString() : undefined;
 
 const urls = LOCALES.map((l) => getRelativeLocaleUrl(l));
@@ -56,16 +55,27 @@ const langItems = LOCALES.map((l, i) => ({
 const currentLabel = getLocaleLabel(current);
 
 const nav = [
-  { label: tt('home'), url: getRelativeLocaleUrl(current, '/') },
-  { label: tt('recipes'), url: getRelativeLocaleUrl(current, '/recipes') },
-  { label: tt('about'), url: getRelativeLocaleUrl(current, '/about') },
+  { label: tt("home"), url: getRelativeLocaleUrl(current, "/") },
+  { label: tt("recipes"), url: getRelativeLocaleUrl(current, "/recipes") },
+  { label: tt("about"), url: getRelativeLocaleUrl(current, "/about") },
 ];
+
+const normalizePath = (value: string) => (value.replace(/\/+$/, "") || "/").toLowerCase();
+const activeUrl = normalizePath(getRelativeLocaleUrl(current));
+const navItems = nav.map((item) => {
+  const normalized = normalizePath(item.url);
+  const isRoot = normalized === "/";
+  const isCurrent = isRoot
+    ? activeUrl === "/"
+    : activeUrl === normalized || activeUrl.startsWith(`${normalized}/`);
+  return { ...item, current: isCurrent };
+});
 ---
 
 <!doctype html>
 <html
   lang={current}
-  dir={current === 'ar' ? 'rtl' : 'ltr'}
+  dir={current === "ar" ? "rtl" : "ltr"}
   class="bg-background text-foreground h-full antialiased"
 >
   <head>
@@ -81,7 +91,7 @@ const nav = [
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     {image && <meta property="og:image" content={image} />}
-    <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
@@ -116,14 +126,18 @@ const nav = [
         </a>
 
         <!-- Mobile: Theme toggle + hamburger -->
-        <MobileMenu client:load langItems={langItems} currentLabel={currentLabel} nav={nav} />
+        <MobileMenu client:load langItems={langItems} currentLabel={currentLabel} nav={navItems} />
 
         <!-- Desktop nav -->
-        <nav class="hidden items-center gap-8 md:flex">
+        <nav class="hidden items-center gap-8 md:flex" aria-label="Primary">
           <div id="left" class="inline-flex items-center gap-6">
             {
-              nav.map((n) => (
-                <a href={n.url} class={buttonVariants({ variant: 'ghost', size: 'default' })}>
+              navItems.map((n) => (
+                <a
+                  href={n.url}
+                  class={`${buttonVariants({ variant: "ghost", size: "default" })} ${n.current ? "text-primary font-semibold" : ""}`}
+                  aria-current={n.current ? "page" : undefined}
+                >
                   {n.label}
                 </a>
               ))
