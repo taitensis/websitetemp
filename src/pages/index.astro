@@ -1,0 +1,181 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import hero from "@/assets/hero.png";
+import { makeT, DEFAULT_LOCALE, type Locale } from "@/i18n/ui";
+const L = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+const tt = makeT(L);
+
+import { getCollection } from "astro:content";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+
+import { Typography } from "@/components/ui/typography";
+
+// Recipes
+const raw = await getCollection("recipes");
+const all = raw
+  .slice()
+  .sort((a, b) => new Date(b.data.date as any).getTime() - new Date(a.data.date as any).getTime());
+
+// Tags
+const allTags = Array.from(new Set(all.flatMap((r) => r.data.tags ?? []))).sort();
+const quickTags = ["breakfast", "mains", "dessert"].filter((t) => allTags.includes(t));
+
+// Featured / latest
+const featured = all.find((r) => r.data.featured);
+const latest = all.slice(0, 6);
+
+// Seasonal
+const now = new Date();
+const month = now.getMonth() + 1;
+const seasons = ["winter", "spring", "summer", "autumn"] as const;
+const season = seasons[Math.floor((month % 12) / 3)];
+const seasonal = all.filter((r) => r.data.month === month || r.data.season === season).slice(0, 4);
+const seasonalList = seasonal.length ? seasonal : all.slice(0, 4);
+
+// Top tags (by count)
+const tagCounts = Object.entries(
+  all
+    .flatMap((r) => r.data.tags ?? [])
+    .reduce((acc, t) => ((acc[t] = (acc[t] || 0) + 1), acc), {} as Record<string, number>)
+)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 8);
+---
+
+<BaseLayout
+  title="Home"
+  description="Welcome to Nourriture Quotidienne, a collection of everyday recipes."
+  bgUrl={hero}
+>
+  <!-- Hero -->
+  <section class="mx-auto max-w-6xl space-y-6 px-6">
+    <div>
+      <Typography variant="h1">Nourriture Quotidienne</Typography>
+      <Typography variant="lead">Everyday recipes, quick and cozy.</Typography>
+    </div>
+
+    <!-- Search form -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <form action="/recipes" class="flex gap-2" role="search" aria-label="Site search">
+        <Input
+          type="search"
+          name="q"
+          placeholder="Search recipes…"
+          aria-label="Search recipes"
+          autoComplete="off"
+          className="bg-card dark:bg-card"
+        />
+        <Button type="submit">Search</Button>
+      </form>
+      <a href="/recipes/random" class={buttonVariants({ variant: "secondary", size: "sm" })}>
+        Surprise me
+      </a>
+    </div>
+
+    <!-- Quick tags + random -->
+    <div class="flex flex-row gap-2" aria-label="Quick tags">
+      {
+        quickTags.map((t) => (
+          <Button asChild variant="secondary" size="sm">
+            <a href={`/recipes?tag=${t}`}>#{t}</a>
+          </Button>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Featured -->
+  {
+    featured && (
+      <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
+        <Typography variant="h2">Featured</Typography>
+        <a href={`/recipes/${featured.slug}/`} class="block">
+          <Card className="overflow-hidden">
+            {featured.data.images?.[0]?.src && (
+              <img
+                class="aspect-[21/9] w-full object-cover"
+                src={featured.data.images[0].src}
+                alt={featured.data.images?.[0]?.alt ?? ""}
+                loading="lazy"
+              />
+            )}
+            <CardContent className="p-4">
+              <h3 class="text-lg font-semibold hover:underline">{featured.data.title}</h3>
+            </CardContent>
+          </Card>
+        </a>
+      </section>
+    )
+  }
+
+  <!-- Latest -->
+  <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
+    <Typography variant="h2">Latest recipes</Typography>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        latest.map((r) => (
+          <a key={r.slug} href={`/recipes/${r.slug}/`} class="group block">
+            <Card className="overflow-hidden">
+              {r.data.images?.[0]?.src && (
+                <img
+                  src={r.data.images[0].src}
+                  class="aspect-[4/3] w-full object-cover transition group-hover:brightness-105"
+                  alt={r.data.images?.[0]?.alt ?? ""}
+                  loading="lazy"
+                />
+              )}
+              <CardContent className="p-4">
+                <h3 class="font-semibold group-hover:underline">{r.data.title}</h3>
+                <p class="text-muted-foreground text-sm">
+                  {r.data.time?.total ?? "—"} min · {r.data.yield ?? "—"}
+                </p>
+              </CardContent>
+            </Card>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Seasonal -->
+  <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
+    <Typography variant="h2">Seasonal picks</Typography>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        seasonalList.map((r) => (
+          <a key={r.slug} href={`/recipes/${r.slug}/`} class="block">
+            <Card className="p-3 hover:shadow-sm">
+              <h3 class="font-medium">{r.data.title}</h3>
+            </Card>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Browse by tag -->
+  <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
+    <Typography variant="h2">Browse by tag</Typography>
+    <div class="flex flex-wrap gap-2">
+      {
+        tagCounts.map(([t, c]) => (
+          <a key={t} href={`/recipes?tag=${t}`}>
+            <Badge variant="secondary">
+              {t} <span class="ml-1 text-zinc-500">({c as number})</span>
+            </Badge>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Greeting / i18n
+  <section class="mx-auto max-w-6xl px-5 mt-12 space-y-4">
+    <h1 class="text-3xl tracking-tight drop-shadow-lg">{tt("hi")}</h1>
+    <p class="leading-7 drop-shadow-lg">{tt("welcome_message")}</p>
+  </section> -->
+</BaseLayout>

@@ -1,0 +1,30 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import RecipesIndex from '@/components/recipes/RecipesIndex';
+import { getCollection } from 'astro:content';
+import { makeT, DEFAULT_LOCALE, type Locale } from '@/i18n/ui';
+const L = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+const tt = makeT(L);
+
+const recipes = await getCollection('recipes');
+
+const items = recipes.map((r) => ({
+  slug: r.slug,
+  title: r.data.title,
+  tags: r.data.tags || [],
+  total: r.data.time?.total ?? null,
+  date: r.data.date ?? null,
+  difficulty: r.data.difficulty ?? null,
+  image: r.data.images?.[0]?.src ?? null,
+  summary: (r as any).data.summary ?? null,
+}));
+---
+
+<BaseLayout title="Recipes" description="Browse all recipes.">
+  <section class="mx-auto max-w-6xl px-5">
+    <h1 class="mb-10 scroll-m-20 text-balance text-4xl font-extrabold tracking-tight">
+      {tt('all_recipes')}
+    </h1>
+    <RecipesIndex client:load items={items} />
+  </section>
+</BaseLayout>
