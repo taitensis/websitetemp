@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import hero from '@/assets/hero.png';
+import { makeT, DEFAULT_LOCALE, type Locale } from '@/i18n/ui';
+const L = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+const tt = makeT(L);
+---
+
+<BaseLayout
+  title="Home"
+  description="Welcome to Nourriture Quotidienne, a collection of everyday recipes."
+  bgUrl={hero}
+  mainClass=""
+>
+  <section class="mx-auto max-w-6xl px-5">
+    <h1 class="mb-10 scroll-m-20 text-balance text-4xl tracking-tight drop-shadow-lg">
+      {tt('hi')}
+    </h1>
+    <p class="leading-7 drop-shadow-lg [&:not(:first-child)]:mt-6">{tt('welcome_message')}</p>
+  </section>
+</BaseLayout>

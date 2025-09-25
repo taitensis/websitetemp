@@ -1,0 +1,12 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+
+  // Ensure Astro files use Prettier (via prettier-plugin-astro)
+  "[astro]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  // Avoid double formatting via ESLint while debugging
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "never"
+  }
+}

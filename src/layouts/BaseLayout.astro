@@ -1,98 +1,203 @@
 ---
-/** Props that can be passed from pages:
- * - title?: string - The title of the page to be set in the head
- * - description?: string - The meta description of the page to be set in the head
- * - image?: string (absolute URL preferred) - The meta image of the page to be set in the head
- * - noIndex?: boolean - If true, adds a meta tag to prevent search engines from indexing the page
- */
+import type { ImageMetadata } from "astro";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  noIndex?: boolean;
+
+  bgUrl?: string | ImageMetadata;
+  mainClass?: string;
+}
+
 import "../styles/global.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import MobileMenu from "@/components/MobileMenu";
+import LangMenu from "@/components/LangMenu";
+
+import { useT, type Locale } from "@/i18n/home";
+import { LOCALES, DEFAULT_LOCALE, getLocaleLabel } from "@/i18n/locales";
+import { getRelativeLocaleUrl } from "astro:i18n";
+
+const current = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+const tt = useT(current);
 
 const {
-    title = "Nourriture Quotidienne",
-    description = "A project to log my personal recipe collection.",
-    image,
-    noIndex = false,
+  title = "Nourriture Quotidienne",
+  description = "A project to log my personal recipe collection.",
+  image,
+  noIndex = false,
+  bgUrl,
+  mainClass = "",
 } = Astro.props;
 
-// Helpful computed bits
+const normalize = (v?: string | ImageMetadata) => (typeof v === "string" ? v : v?.src);
+const bg = normalize(bgUrl);
+
+const overlayClassLight = "bg-white/80"; // or 'bg-background/80'
+const overlayClassDark = "bg-black/70"; // or 'bg-background/80'
+
 const site = typeof Astro.site === "string" ? Astro.site : "";
 const pageTitle = title === "Nourriture Quotidienne" ? title : `${title} · Nourriture Quotidienne`;
 const canonical = site ? new URL(Astro.url.pathname, site).toString() : undefined;
+
+const urls = LOCALES.map((l) => getRelativeLocaleUrl(l));
+const currentUrl = getRelativeLocaleUrl(current);
+
+const langItems = LOCALES.map((l, i) => ({
+  label: getLocaleLabel(l),
+  url: urls[i],
+  current: urls[i] === currentUrl,
+}));
+
+const currentLabel = getLocaleLabel(current);
+
+const nav = [
+  { label: tt("home"), url: getRelativeLocaleUrl(current, "/") },
+  { label: tt("recipes"), url: getRelativeLocaleUrl(current, "/recipes") },
+  { label: tt("about"), url: getRelativeLocaleUrl(current, "/about") },
+];
 ---
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{pageTitle}</title>
-        <meta name="description" content={description} />
-        {noIndex && <meta name="robots" content="noindex,nofollow" />}
-        {canonical && <link rel="canonical" href={canonical} />}
 
-        {/* Open Graph / Twitter */}
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={description} />
-        {image && <meta property="og:image" content={image} />}
-        <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={description} />
-        {image && <meta name="twitter:image" content={image} />}
+<!doctype html>
+<html
+  lang={current}
+  dir={current === "ar" ? "rtl" : "ltr"}
+  class="bg-background text-foreground h-full antialiased"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {noIndex && <meta name="robots" content="noindex,nofollow" />}
+    {canonical && <link rel="canonical" href={canonical} />}
 
-            {/* Prevent dark-mode flash */}
+    {/* Open Graph / Twitter */}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={image} />}
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={image} />}
+
+    {/* Prevent dark-mode flash */}
     <script>
-      {`try {
+      {
+        `try {
         const saved = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (saved === 'dark' || (!saved && prefersDark)) {
           document.documentElement.classList.add('dark');
         }
-      } catch (_) {}`}
+      } catch (_) {}`;
+      }
     </script>
-    </head>
+  </head>
 
-    <body class="min-h-screen flex flex-col">
-        <a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:m-4 focus:rounded focus:bg-amber-200/80 focus:px-3 focus:py-2 focus:text-slate-800">
-            Skip to content
-        </a>
-
-        <header class="pt-4 border-b border-slate-200/60 dark:border-slate-800/80">
-  <div class="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-    <!-- Brand -->
-    <a href={import.meta.env.BASE_URL} class="flex items-center gap-2 font-semibold">
-      <span class="tracking-tight">Nourriture Quotidienne</span>
+  <body class="flex min-h-dvh flex-col">
+    <a
+      href="#content"
+      class="sr-only focus:not-sr-only focus:absolute focus:m-4 focus:rounded focus:bg-amber-200/80 focus:px-3 focus:py-2 focus:text-slate-800"
+    >
+      Skip to content
     </a>
 
-    <!-- Mobile: Theme toggle + hamburger -->
-    <MobileMenu client:load />
+    <header
+      class="sticky top-0 z-50 border-b border-white/10
+         bg-white/70 dark:bg-black/60
+         backdrop-blur-[2px] backdrop-saturate-150 backdrop-contrast-110
+         transition-all duration-300
+         data-[scrolled=true]:bg-white/80 dark:data-[scrolled=true]:bg-black/70
+         data-[scrolled=true]:backdrop-blur-md data-[scrolled=true]:shadow-sm"
+    >
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <!-- Brand -->
+        <a href={import.meta.env.BASE_URL} class="flex items-center gap-2 font-semibold">
+          <span class="text-xl tracking-tight">Nourriture Quotidienne</span>
+        </a>
 
-    <!-- Desktop nav -->
-    <nav class="hidden md:flex items-center gap-6 text-sm">
-        <a href={import.meta.env.BASE_URL} class="hover:text-amber-600">Home</a>
-        <a href={`${import.meta.env.BASE_URL}recipes`} class="hover:text-amber-600">Recipes</a>
-        <a href={`${import.meta.env.BASE_URL}about`} class="hover:text-amber-600">About</a>
-      <ThemeToggle client:load />
-    </nav>
-  </div>
-</header>
+        <!-- Mobile: Theme toggle + hamburger -->
+        <MobileMenu client:load langItems={langItems} currentLabel={currentLabel} nav={nav} />
 
-        <main id="content" class="py-8">
-            <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                <slot />
-            </div>
-        </main>
+        <!-- Desktop nav -->
+        <nav class="hidden items-center gap-8 md:flex">
+          <div id="left" class="inline-flex items-center gap-6">
+            {
+              nav.map((n) => (
+                <a href={n.url} class={buttonVariants({ variant: "ghost", size: "default" })}>
+                  {n.label}
+                </a>
+              ))
+            }
+          </div>
+          <div id="right" class="flex items-center gap-2">
+            <LangMenu client:load items={langItems} currentLabel={currentLabel} />
+            <ThemeToggle client:load />
+          </div>
+        </nav>
+      </div>
+    </header>
 
-        <footer class="border-t border-slate-200/60 dark:border-slate-800/80">
-        <div class="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <p>© {new Date().getFullYear()} Maxime C. — Recipes for everyday cooking.</p>
-            <p>
-                Built with <a href="https://astro.build" target="_blank" rel="noreferrer" class="underline hover:text-amber-600">Astro</a>,
-                <a href="https://tailwindcss.com" target="_blank" rel="noreferrer" class="underline hover:text-amber-600 ml-1">Tailwind CSS</a>, and
-                <a href="https://ui.shadcn.com" target="_blank" rel="noreferrer" class="underline hover:text-amber-600 ml-1">shadcn/ui</a>.
-            </p>
-        </div>
-        </footer>
-    </body>
+    <main id="content" class={`relative isolate flex-1 py-10 ${mainClass}`}>
+      {
+        bg && (
+          <div
+            aria-hidden="true"
+            class="absolute inset-0 z-0 bg-cover bg-center"
+            style={`background-image:url('${bg}')`}
+          />
+        )
+      }
+
+      <!-- Always-on contrast overlays (light & dark) -->
+      <div
+        aria-hidden="true"
+        class={`absolute inset-0 z-10 block dark:hidden pointer-events-none ${overlayClassLight}`}
+      >
+      </div>
+      <div
+        aria-hidden="true"
+        class={`absolute inset-0 z-10 hidden dark:block pointer-events-none ${overlayClassDark}`}
+      >
+      </div>
+
+      <div class="relative z-20">
+        <slot />
+      </div>
+    </main>
+
+    <footer class="border-border border-t">
+      <div
+        class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-2 px-4 py-6 text-sm sm:flex-row sm:items-center"
+      >
+        <p>© {new Date().getFullYear()} Maxime C. — Recipes for everyday cooking.</p>
+        <p>
+          Built with <a
+            href="https://astro.build"
+            target="_blank"
+            rel="noreferrer"
+            class="hover:text-primary underline">Astro</a
+          >,
+          <a
+            href="https://tailwindcss.com"
+            target="_blank"
+            rel="noreferrer"
+            class="hover:text-primary ml-1 underline">Tailwind CSS</a
+          >, and
+          <a
+            href="https://ui.shadcn.com"
+            target="_blank"
+            rel="noreferrer"
+            class="hover:text-primary ml-1 underline">shadcn/ui</a
+          >.
+        </p>
+      </div>
+    </footer>
+  </body>
 </html>

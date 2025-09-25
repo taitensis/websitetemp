@@ -1,50 +1,91 @@
-import * as React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import * as React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+import { makeT as makeUiT } from '@/i18n/ui';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/core';
+import { makeT as makeTagsT, type TagStrings } from '@/i18n/tags';
+
+type Tt = (key: string, params?: Record<string, unknown>) => string;
+type TtTag = (key: string, params?: Record<string, unknown>) => string;
 
 /* ---------------- types ---------------- */
 
 export type RecipeItem = {
   slug: string;
   title: string;
-  tags?: string[];
+  tags?: Array<keyof TagStrings>;
   total?: number | null; // total minutes
-  date?: Date | null; // ensure you pass Date (or adapt below)
-  difficulty?: "easy" | "medium" | "hard" | null;
+  date?: Date | string | null; // can be Date or ISO string
+  difficulty?: 'easy' | 'medium' | 'hard' | null;
   image?: string | null; // e.g. "/images/..." or absolute
   summary?: string | null;
 };
 
-type Props = { items: RecipeItem[] };
+type Props = {
+  items: RecipeItem[];
+  locale?: Locale;
+  makeHref: (slug: string) => string;
+};
+
+const SORT_OPTIONS = [
+  { value: 'newest', labelKey: 'sort_newest' },
+  { value: 'oldest', labelKey: 'sort_oldest' },
+  { value: 'fastest', labelKey: 'fastest' },
+  { value: 'longest', labelKey: 'longest' },
+] as const;
+
+type SortKey = (typeof SORT_OPTIONS)[number]['value'];
+type SortLabelKey = (typeof SORT_OPTIONS)[number]['labelKey'];
+
+const withBase = (p: string) => {
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+  const abs = p.startsWith('/') ? p : `/${p}`;
+  return abs.startsWith(`${base}/`) ? abs : `${base}${abs}`;
+};
+
+const join = (a: string, b: string) => `${a.replace(/\/+$/, '')}/${b.replace(/^\/+/, '')}`;
 
 /* -------------- component --------------- */
 
-export default function RecipesIndex({ items }: Props) {
-  const [query, setQuery] = React.useState("");
-  const [sort, setSort] = React.useState<
-    "newest" | "oldest" | "shortest" | "longest"
-  >("newest");
-  const [activeTags, setActiveTags] = React.useState<Set<string>>(new Set());
-  const [difficulties, setDifficulties] = React.useState<Set<string>>(
-    new Set()
+export default function RecipesIndex({ items, locale, localePrefix }: Props) {
+  const tt = React.useMemo<Tt>(() => makeUiT(locale ?? DEFAULT_LOCALE), [locale]);
+  const ttTagRaw = React.useMemo<TtTag>(() => makeTagsT(locale ?? DEFAULT_LOCALE), [locale]);
+
+  // Safe wrapper: never crash if a tag slug is missing in the dictionary
+  const tTagSafe = React.useCallback(
+    (slug: string) => {
+      try {
+        return ttTagRaw(slug);
+      } catch {
+        return slug;
+      }
+    },
+    [ttTagRaw]
   );
+
+  const [query, setQuery] = React.useState('');
+  const [sort, setSort] = React.useState<SortKey>('newest');
+  const [activeTags, setActiveTags] = React.useState<Set<string>>(new Set());
+  const [difficulties, setDifficulties] = React.useState<Set<string>>(new Set());
 
   const allTags = React.useMemo(() => {
     const s = new Set<string>();
     items.forEach((i) => i.tags?.forEach((t) => s.add(t)));
-    return Array.from(s).sort((a, b) => a.localeCompare(b));
-  }, [items]);
+    const arr = Array.from(s);
+    return arr.sort((a, b) => tTagSafe(a).localeCompare(tTagSafe(b)));
+  }, [items, tTagSafe]);
 
   function toggleTag(tag: string) {
     const s = new Set(activeTags);
@@ -59,85 +100,98 @@ export default function RecipesIndex({ items }: Props) {
   }
 
   const filtered = React.useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const toMs = (d: unknown) =>
+      typeof d === 'string' ? Date.parse(d) : d instanceof Date ? d.getTime() : 0;
+
+    const fold = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '');
+
+    const q = fold(query.trim());
+
     let out = items.filter((i) => {
-      const matchesQuery =
-        !q ||
-        i.title.toLowerCase().includes(q) ||
-        (i.tags || []).some((t) => t.toLowerCase().includes(q));
-      const matchesTags =
-        activeTags.size === 0 || (i.tags || []).some((t) => activeTags.has(t));
+      const title = fold(i.title);
+      const tagLabels = (i.tags || []).map((t) => fold(tTagSafe(t)));
+      const matchesQuery = !q || title.includes(q) || tagLabels.some((t) => t.includes(q));
+      const matchesTags = activeTags.size === 0 || (i.tags || []).some((t) => activeTags.has(t));
       const matchesDiff =
-        difficulties.size === 0 ||
-        (i.difficulty && difficulties.has(i.difficulty));
+        difficulties.size === 0 || (i.difficulty && difficulties.has(i.difficulty));
       return matchesQuery && matchesTags && matchesDiff;
     });
 
     out.sort((a, b) => {
-      if (sort === "newest") {
-        const bDate = b.date instanceof Date ? b.date.getTime() : 0;
-        const aDate = a.date instanceof Date ? a.date.getTime() : 0;
+      if (sort === 'newest') {
+        const bDate = toMs(b.date);
+        const aDate = toMs(a.date);
         return bDate - aDate;
       }
-      if (sort === "oldest") {
-        const aDate = a.date instanceof Date ? a.date.getTime() : 0;
-        const bDate = b.date instanceof Date ? b.date.getTime() : 0;
+      if (sort === 'oldest') {
+        const aDate = toMs(a.date);
+        const bDate = toMs(b.date);
         return aDate - bDate;
       }
-      if (sort === "shortest")
-        return (a.total ?? Infinity) - (b.total ?? Infinity);
-      if (sort === "longest") return (b.total ?? -1) - (a.total ?? -1);
+      if (sort === 'fastest') return (a.total ?? Infinity) - (b.total ?? Infinity);
+      if (sort === 'longest') return (b.total ?? -1) - (a.total ?? -1);
       return 0;
     });
 
     return out;
-  }, [items, query, activeTags, difficulties, sort]);
+  }, [items, query, activeTags, difficulties, sort, tTagSafe]);
 
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <Card className="gap-0 border-slate-200 dark:border-slate-800">
+      <Card className="border-border gap-0">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Filter recipes</CardTitle>
+          <CardTitle className="text-base">{tt('filter_recipes')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
+              <label className="text-sm font-medium">{tt('search')}</label>
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="title or tag…"
+                placeholder={tt('title_or_tag')}
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Sort</label>
-              <Select value={sort} onValueChange={(v: any) => setSort(v)}>
+              <label className="text-sm font-medium">{tt('sort')}</label>
+              <Select value={sort} onValueChange={(v: any) => setSort(v as SortKey)}>
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder={tt('sort_newest')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="shortest">Shortest time</SelectItem>
-                  <SelectItem value="longest">Longest time</SelectItem>
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {tt(opt.labelKey as SortLabelKey)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Difficulty</label>
+              <label className="text-sm font-medium">{tt('difficulty')}</label>
               <ToggleGroup type="multiple" className="justify-start">
-                {["easy", "medium", "hard"].map((d) => (
+                {['easy', 'medium', 'hard'].map((d) => (
                   <ToggleGroupItem
                     key={d}
                     value={d}
-                    aria-label={`Toggle ${d}`}
-                    data-state={difficulties.has(d) ? "on" : "off"}
-                    onClick={() => toggleDifficulty(d)}
-                    className="capitalize">
-                    {d}
+                    aria-label={tt(d)}
+                    data-state={difficulties.has(d) ? 'on' : 'off'}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleDifficulty(d);
+                    }}
+                    type="button"
+                    className="capitalize"
+                  >
+                    {tt(d)}
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
@@ -150,16 +204,22 @@ export default function RecipesIndex({ items }: Props) {
             {allTags.map((tag) => (
               <Badge
                 key={tag}
-                onClick={() => toggleTag(tag)}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleTag(tag);
+                }}
                 className={`cursor-pointer select-none ${
-                  activeTags.has(tag) ? "" : "opacity-60 hover:opacity-100"
+                  activeTags.has(tag) ? '' : 'opacity-60 hover:opacity-100'
                 }`}
-                variant={activeTags.has(tag) ? "default" : "secondary"}>
-                {tag}
+                variant={activeTags.has(tag) ? 'default' : 'secondary'}
+              >
+                {tTagSafe(tag)}
               </Badge>
             ))}
             {allTags.length === 0 && (
-              <span className="text-sm text-slate-500">No tags yet</span>
+              <span className="text-sm text-slate-50">{tt?.('no_tags_yet') ?? 'No tags yet'}</span>
             )}
           </div>
 
@@ -169,12 +229,13 @@ export default function RecipesIndex({ items }: Props) {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setQuery("");
-                  setSort("newest");
+                  setQuery('');
+                  setSort('newest');
                   setActiveTags(new Set());
                   setDifficulties(new Set());
-                }}>
-                Reset filters
+                }}
+              >
+                {tt?.('reset_filters') ?? 'Reset filters'}
               </Button>
             </div>
           )}
@@ -183,11 +244,11 @@ export default function RecipesIndex({ items }: Props) {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <EmptyState />
+        <EmptyState tt={tt} />
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
-            <RecipeCard key={r.slug} item={r} />
+            <RecipeCard key={r.slug} item={r} ttTag={tTagSafe} localePrefix={localePrefix} />
           ))}
         </div>
       )}
@@ -197,46 +258,52 @@ export default function RecipesIndex({ items }: Props) {
 
 /* -------------- card --------------- */
 
-function RecipeCard({ item }: { item: RecipeItem }) {
-  const base = import.meta.env.BASE_URL; // "/nourriture-quotidienne/" on GH Pages
-  const href = `${base}recipes/${item.slug}`;
+function RecipeCard({
+  item,
+  ttTag,
+  localePrefix,
+}: {
+  item: RecipeItem;
+  ttTag: TtTag;
+  localePrefix: string;
+}) {
+  const base = import.meta.env.BASE_URL; // for images
+  const href = join(localePrefix, `recipes/${item.slug}`); // locale + base aware
+
   const imgSrc = item.image
-    ? item.image.startsWith("/")
-      ? base + item.image.slice(1)
+    ? item.image.startsWith('/')
+      ? join(base, item.image) // avoid double slashes
       : item.image
     : null;
 
   return (
     <Card
-      className="overflow-hidden px-3 py-3 group border border-slate-200 dark:border-slate-800
-                 transition-[color,box-shadow] hover:border-ring hover:ring-ring/50 hover:ring-[3px]">
+      className="hover:border-ring hover:ring-ring/50 group overflow-hidden border border-slate-200 px-3
+                 py-3 transition-[color,box-shadow] hover:ring-[3px] dark:border-slate-800"
+    >
       {imgSrc && (
         <a href={href} className="block">
           <div className="relative aspect-[4/3]">
             <img
               src={imgSrc}
               alt={item.title}
-              className="absolute inset-0 block h-full w-full object-cover duration-300 transition group-hover:brightness-105"
+              className="absolute inset-0 block h-full w-full object-cover transition duration-300 group-hover:brightness-105"
               loading="lazy"
             />
           </div>
         </a>
       )}
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="space-y-3 p-4">
         <a href={href} className="block">
-          <h3 className="font-semibold leading-tight line-clamp-2">
-            {item.title}
-          </h3>
+          <h3 className="line-clamp-2 font-semibold leading-tight">{item.title}</h3>
         </a>
         <div className="flex flex-wrap gap-2">
           {item.tags?.slice(0, 3).map((t) => (
             <Badge key={t} variant="secondary">
-              {t}
+              {ttTag(t)}
             </Badge>
           ))}
-          {item.total != null && (
-            <Badge variant="outline">{item.total} min</Badge>
-          )}
+          {item.total != null && <Badge variant="outline">{item.total} min</Badge>}
           {item.difficulty && (
             <Badge variant="outline" className="capitalize">
               {item.difficulty}
@@ -250,12 +317,10 @@ function RecipeCard({ item }: { item: RecipeItem }) {
 
 /* -------------- empty --------------- */
 
-function EmptyState() {
+function EmptyState({ tt }: { tt: Tt }) {
   return (
     <Card className="border-dashed">
-      <CardContent className="p-8 text-center text-slate-500">
-        No recipes match your filters.
-      </CardContent>
+      <CardContent className="p-8 text-center text-slate-500">{tt('no_results')}</CardContent>
     </Card>
   );
 }
