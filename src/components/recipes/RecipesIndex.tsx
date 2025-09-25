@@ -15,23 +15,13 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 import { makeT as makeUiT } from '@/i18n/ui';
 import { DEFAULT_LOCALE, type Locale } from '@/i18n/core';
-import { makeT as makeTagsT, type TagStrings } from '@/i18n/tags';
+import { makeT as makeTagsT } from '@/i18n/tags';
+import type { RecipeSummary } from '@/lib/recipes';
 
 type Tt = (key: string, params?: Record<string, unknown>) => string;
 type TtTag = (key: string, params?: Record<string, unknown>) => string;
 
-/* ---------------- types ---------------- */
-
-export type RecipeItem = {
-  slug: string;
-  title: string;
-  tags?: Array<keyof TagStrings>;
-  total?: number | null; // total minutes
-  date?: Date | string | null; // can be Date or ISO string
-  difficulty?: 'easy' | 'medium' | 'hard' | null;
-  image?: string | null; // e.g. "/images/..." or absolute
-  summary?: string | null;
-};
+export type RecipeItem = RecipeSummary;
 
 type Props = {
   items: RecipeItem[];
@@ -57,8 +47,6 @@ const withBase = (p: string) => {
 
 const join = (a: string, b: string) => `${a.replace(/\/+$/, '')}/${b.replace(/^\/+/, '')}`;
 
-/* -------------- component --------------- */
-
 export default function RecipesIndex({ items, locale, localePrefix }: Props) {
   const tt = React.useMemo<Tt>(() => makeUiT(locale ?? DEFAULT_LOCALE), [locale]);
   const ttTagRaw = React.useMemo<TtTag>(() => makeTagsT(locale ?? DEFAULT_LOCALE), [locale]);
@@ -67,7 +55,8 @@ export default function RecipesIndex({ items, locale, localePrefix }: Props) {
     [localePrefix]
   );
 
-  // Safe wrapper: never crash if a tag slug is missing in the dictionary
+  // We want a resilient lookup because CMS authors sometimes publish tags
+  // before adding translations. Falling back to the raw slug keeps the UI usable.
   const tTagSafe = React.useCallback(
     (slug: string) => {
       try {
@@ -91,17 +80,17 @@ export default function RecipesIndex({ items, locale, localePrefix }: Props) {
     return arr.sort((a, b) => tTagSafe(a).localeCompare(tTagSafe(b)));
   }, [items, tTagSafe]);
 
-  function toggleTag(tag: string) {
-    const s = new Set(activeTags);
-    s.has(tag) ? s.delete(tag) : s.add(tag);
-    setActiveTags(s);
-  }
+  const toggleTag = React.useCallback((tag: string) => {
+    setActiveTags((prev) => {
+      const next = new Set(prev);
+      next.has(tag) ? next.delete(tag) : next.add(tag);
+      return next;
+    });
+  }, []);
 
-  function toggleDifficulty(value: string) {
-    const s = new Set(difficulties);
-    s.has(value) ? s.delete(value) : s.add(value);
-    setDifficulties(s);
-  }
+  const handleDifficultyChange = React.useCallback((values: string[]) => {
+    setDifficulties(new Set(values));
+  }, []);
 
   const filtered = React.useMemo(() => {
     const toMs = (d: unknown) =>
@@ -184,21 +173,14 @@ export default function RecipesIndex({ items, locale, localePrefix }: Props) {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">{tt('difficulty')}</label>
-              <ToggleGroup type="multiple" className="justify-start">
+              <ToggleGroup
+                type="multiple"
+                className="justify-start"
+                value={Array.from(difficulties)}
+                onValueChange={handleDifficultyChange}
+              >
                 {['easy', 'medium', 'hard'].map((d) => (
-                  <ToggleGroupItem
-                    key={d}
-                    value={d}
-                    aria-label={tt(d)}
-                    data-state={difficulties.has(d) ? 'on' : 'off'}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleDifficulty(d);
-                    }}
-                    type="button"
-                    className="capitalize"
-                  >
+                  <ToggleGroupItem key={d} value={d} aria-label={tt(d)} className="capitalize">
                     {tt(d)}
                   </ToggleGroupItem>
                 ))}
@@ -209,25 +191,28 @@ export default function RecipesIndex({ items, locale, localePrefix }: Props) {
           <Separator />
 
           <div className="flex flex-wrap gap-2">
+            {/* Render tags as real buttons so keyboard users can toggle filters. */}
             {allTags.map((tag) => (
               <Badge
                 key={tag}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleTag(tag);
-                }}
-                className={`cursor-pointer select-none ${
-                  activeTags.has(tag) ? '' : 'opacity-60 hover:opacity-100'
+                asChild
+                className={`cursor-pointer select-none transition ${
+                  activeTags.has(tag) ? '' : 'opacity-80 hover:opacity-100'
                 }`}
                 variant={activeTags.has(tag) ? 'default' : 'secondary'}
               >
-                {tTagSafe(tag)}
+                <button
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  aria-pressed={activeTags.has(tag)}
+                  className="inline-flex items-center gap-1"
+                >
+                  {tTagSafe(tag)}
+                </button>
               </Badge>
             ))}
             {allTags.length === 0 && (
-              <span className="text-sm text-slate-50">{tt?.('no_tags_yet') ?? 'No tags yet'}</span>
+              <span className="text-sm text-muted-foreground">{tt('no_tags_yet')}</span>
             )}
           </div>
 
@@ -264,9 +249,8 @@ export default function RecipesIndex({ items, locale, localePrefix }: Props) {
   );
 }
 
-/* -------------- card --------------- */
-
-function RecipeCard({
+  // Present each recipe with consistent styling and shared locale-aware links.
+  function RecipeCard({
   item,
   ttTag,
   localePrefix,
@@ -323,9 +307,8 @@ function RecipeCard({
   );
 }
 
-/* -------------- empty --------------- */
-
-function EmptyState({ tt }: { tt: Tt }) {
+  // Friendly empty state keeps the layout stable when no matches are found.
+  function EmptyState({ tt }: { tt: Tt }) {
   return (
     <Card className="border-dashed">
       <CardContent className="p-8 text-center text-slate-500">{tt('no_results')}</CardContent>

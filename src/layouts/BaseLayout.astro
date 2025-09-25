@@ -43,8 +43,9 @@ const site = typeof Astro.site === "string" ? Astro.site : "";
 const pageTitle = title === "Nourriture Quotidienne" ? title : `${title} · Nourriture Quotidienne`;
 const canonical = site ? new URL(Astro.url.pathname, site).toString() : undefined;
 
-const urls = LOCALES.map((l) => getRelativeLocaleUrl(l));
-const currentUrl = getRelativeLocaleUrl(current);
+const path = Astro.url.pathname;
+const urls = LOCALES.map((l) => getRelativeLocaleUrl(l, path));
+const currentUrl = getRelativeLocaleUrl(current, path);
 
 const langItems = LOCALES.map((l, i) => ({
   label: getLocaleLabel(l),
@@ -61,7 +62,7 @@ const nav = [
 ];
 
 const normalizePath = (value: string) => (value.replace(/\/+$/, "") || "/").toLowerCase();
-const activeUrl = normalizePath(getRelativeLocaleUrl(current));
+const activeUrl = normalizePath(getRelativeLocaleUrl(current, path));
 const navItems = nav.map((item) => {
   const normalized = normalizePath(item.url);
   const isRoot = normalized === "/";
@@ -96,16 +97,16 @@ const navItems = nav.map((item) => {
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
 
-    {/* Prevent dark-mode flash */}
+    {/* Prevent dark-mode flash by syncing the class before hydration. */}
     <script>
       {
         `try {
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (saved === 'dark' || (!saved && prefersDark)) {
-          document.documentElement.classList.add('dark');
-        }
-      } catch (_) {}`;
+          const root = document.documentElement;
+          const saved = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const shouldUseDark = saved ? saved === 'dark' : prefersDark;
+          root.classList.toggle('dark', shouldUseDark);
+        } catch (_) { /* no-op */ }`;
       }
     </script>
   </head>

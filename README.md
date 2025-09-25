@@ -1,46 +1,54 @@
-# Astro Starter Kit: Basics
+# Nourriture Quotidienne
 
-```sh
-npm create astro@latest -- --template basics
+Astro-powered recipe collection that serves multi-lingual content with MDX, Tailwind CSS, and shadcn/ui components. This fork focuses on maintainable content pipelines, accessible filters, and fast static builds.
+
+## Tech Stack
+
+- **Astro** with static site generation and internationalised routing
+- **React islands** for interactive experiences such as the recipe filters and navigation menus
+- **shadcn/ui** component primitives styled with **Tailwind CSS v4**
+- **MDX** content sourced from `src/content/recipes`
+
+## Local Development
+
+```bash
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The dev server runs on [http://localhost:4321](http://localhost:4321). Astro reloads on content, layout, and translation changes.
 
-## 🚀 Project Structure
+## Useful Commands
 
-Inside of your Astro project, you'll see the following folders and files:
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Generate the production build in `dist/` |
+| `npm run preview` | Preview the built site locally |
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+## Project Structure
+
+Key directories to be aware of:
+
+```
+src/
+  components/       → React and Astro components (shadcn/ui based)
+  content/          → MDX recipe entries and collection config
+  layouts/          → Page shells and global theming helpers
+  lib/              → Domain utilities (e.g. recipe data helpers)
+  pages/            → Astro pages per locale and route
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## Content Editing
 
-## 🧞 Commands
+Recipe entries live in `src/content/recipes`. Frontmatter powers the filters (time, difficulty, tags), while the body can use full MDX. When adding new tags, remember to provide translations in `src/i18n/tags` so they display nicely in every locale.
 
-All commands are run from the root of the project, from a terminal:
+## Accessibility & Theming
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+- The theme toggle stores the preference in `localStorage` and respects the system default.
+- Recipe filters expose semantic buttons and form controls so keyboard and assistive technology users can operate them.
+- Colour tokens come from Tailwind CSS design tokens defined in `src/styles/global.css` and automatically support dark mode.
 
-## 👀 Want to learn more?
+## Deployment
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The project is configured to deploy to GitHub Pages under `https://taitensis.github.io/nourriture-quotidienne/`. Adjust the `site` and `base` values in `astro.config.mjs` if you publish elsewhere.

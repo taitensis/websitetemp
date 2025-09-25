@@ -5,45 +5,50 @@ import { makeT, DEFAULT_LOCALE, type Locale } from "@/i18n/ui";
 const L = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
 const tt = makeT(L);
 
-import { getCollection } from "astro:content";
-
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { Typography } from "@/components/ui/typography";
+import {
+  collectTagCounts,
+  getSortedRecipes,
+  pickFeaturedRecipe,
+  pickLatestRecipes,
+  pickSeasonalRecipes,
+  resolveQuickTags,
+} from "@/lib/recipes";
 
-// Recipes
-const raw = await getCollection("recipes");
-const all = raw
-  .slice()
-  .sort((a, b) => new Date(b.data.date as any).getTime() - new Date(a.data.date as any).getTime());
+// Pull every recipe once so downstream slices all share the same ordering.
+const all = await getSortedRecipes();
+const featured = pickFeaturedRecipe(all);
+const latest = pickLatestRecipes(all, 6);
+const quickTags = resolveQuickTags(all);
+const seasonalList = pickSeasonalRecipes(all, new Date(), 4);
+const tagCounts = collectTagCounts(all);
 
-// Tags
-const allTags = Array.from(new Set(all.flatMap((r) => r.data.tags ?? []))).sort();
-const quickTags = ["breakfast", "mains", "dessert"].filter((t) => allTags.includes(t));
+const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+const applyBase = (src?: string | null) => (src && src.startsWith("/") ? `${baseUrl}${src}` : src ?? null);
 
-// Featured / latest
-const featured = all.find((r) => r.data.featured);
-const latest = all.slice(0, 6);
+const featuredImage = featured?.data.images?.[0];
+const featuredMedia = {
+  src: applyBase(featuredImage?.src ?? null),
+  alt: featuredImage?.alt ?? featured?.data.title ?? "",
+};
 
-// Seasonal
-const now = new Date();
-const month = now.getMonth() + 1;
-const seasons = ["winter", "spring", "summer", "autumn"] as const;
-const season = seasons[Math.floor((month % 12) / 3)];
-const seasonal = all.filter((r) => r.data.month === month || r.data.season === season).slice(0, 4);
-const seasonalList = seasonal.length ? seasonal : all.slice(0, 4);
-
-// Top tags (by count)
-const tagCounts = Object.entries(
-  all
-    .flatMap((r) => r.data.tags ?? [])
-    .reduce((acc, t) => ((acc[t] = (acc[t] || 0) + 1), acc), {} as Record<string, number>)
-)
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 8);
+const latestCards = latest.map((entry) => {
+  const image = entry.data.images?.[0];
+  const total = entry.data.time?.total;
+  return {
+    slug: entry.slug,
+    title: entry.data.title,
+    duration: typeof total === "number" ? `${total} min` : "—",
+    yield: entry.data.yield ?? "—",
+    image: applyBase(image?.src ?? null),
+    alt: image?.alt ?? entry.data.title,
+  };
+});
 ---
 
 <BaseLayout
@@ -76,7 +81,8 @@ const tagCounts = Object.entries(
       </a>
     </div>
 
-    <!-- Quick tags + random -->
+  <!-- Quick tags + random -->
+  {quickTags.length > 0 && (
     <div class="flex flex-row gap-2" aria-label="Quick tags">
       {
         quickTags.map((t) => (
@@ -86,6 +92,7 @@ const tagCounts = Object.entries(
         ))
       }
     </div>
+  )}
   </section>
 
   <!-- Featured -->
@@ -95,11 +102,11 @@ const tagCounts = Object.entries(
         <Typography variant="h2">Featured</Typography>
         <a href={`/recipes/${featured.slug}/`} class="block">
           <Card className="overflow-hidden">
-            {featured.data.images?.[0]?.src && (
+            {featuredMedia.src && (
               <img
                 class="aspect-[21/9] w-full object-cover"
-                src={featured.data.images[0].src}
-                alt={featured.data.images?.[0]?.alt ?? ""}
+                src={featuredMedia.src}
+                alt={featuredMedia.alt}
                 loading="lazy"
               />
             )}
@@ -115,29 +122,29 @@ const tagCounts = Object.entries(
   <!-- Latest -->
   <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
     <Typography variant="h2">Latest recipes</Typography>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        latest.map((r) => (
-          <a key={r.slug} href={`/recipes/${r.slug}/`} class="group block">
-            <Card className="overflow-hidden">
-              {r.data.images?.[0]?.src && (
-                <img
-                  src={r.data.images[0].src}
-                  class="aspect-[4/3] w-full object-cover transition group-hover:brightness-105"
-                  alt={r.data.images?.[0]?.alt ?? ""}
-                  loading="lazy"
-                />
-              )}
-              <CardContent className="p-4">
-                <h3 class="font-semibold group-hover:underline">{r.data.title}</h3>
-                <p class="text-muted-foreground text-sm">
-                  {r.data.time?.total ?? "—"} min · {r.data.yield ?? "—"}
-                </p>
-              </CardContent>
-            </Card>
-          </a>
-        ))
-      }
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          latestCards.map((card) => (
+            <a key={card.slug} href={`/recipes/${card.slug}/`} class="group block">
+              <Card className="overflow-hidden">
+                {card.image && (
+                  <img
+                    src={card.image}
+                    class="aspect-[4/3] w-full object-cover transition group-hover:brightness-105"
+                    alt={card.alt}
+                    loading="lazy"
+                  />
+                )}
+                <CardContent className="p-4">
+                  <h3 class="font-semibold group-hover:underline">{card.title}</h3>
+                  <p class="text-muted-foreground text-sm">
+                    {card.duration} · {card.yield}
+                  </p>
+                </CardContent>
+              </Card>
+            </a>
+          ))
+        }
     </div>
   </section>
 
@@ -158,20 +165,22 @@ const tagCounts = Object.entries(
   </section>
 
   <!-- Browse by tag -->
-  <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
-    <Typography variant="h2">Browse by tag</Typography>
-    <div class="flex flex-wrap gap-2">
-      {
-        tagCounts.map(([t, c]) => (
-          <a key={t} href={`/recipes?tag=${t}`}>
-            <Badge variant="secondary">
-              {t} <span class="ml-1 text-zinc-500">({c as number})</span>
-            </Badge>
-          </a>
-        ))
-      }
-    </div>
-  </section>
+  {tagCounts.length > 0 && (
+    <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
+      <Typography variant="h2">Browse by tag</Typography>
+      <div class="flex flex-wrap gap-2">
+        {
+          tagCounts.map(({ tag, count }) => (
+            <a key={tag} href={`/recipes?tag=${tag}`}>
+              <Badge variant="secondary">
+                {tag} <span class="ml-1 text-zinc-500">({count})</span>
+              </Badge>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  )}
 
   <!-- Greeting / i18n
   <section class="mx-auto max-w-6xl px-5 mt-12 space-y-4">
