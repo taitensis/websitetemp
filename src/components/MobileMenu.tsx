@@ -1,9 +1,9 @@
-import * as React from 'react';
-import ThemeToggle from '@/components/ThemeToggle';
-import LangMenu from '@/components/LangMenu';
+import * as React from "react";
+import ThemeToggle from "@/components/ThemeToggle";
+import LangMenu from "@/components/LangMenu";
 
 type LangItem = { label: string; url: string; current: boolean };
-type NavItem = { label: string; url: string };
+type NavItem = { label: string; url: string; current?: boolean };
 
 export default function MobileMenu({
   langItems,
@@ -22,13 +22,14 @@ export default function MobileMenu({
       if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === "Escape") setOpen(false);
     };
-    document.addEventListener('click', onDocClick, { capture: true });
-    window.addEventListener('keydown', onKey);
+    const listenerOptions: AddEventListenerOptions = { capture: true };
+    document.addEventListener("click", onDocClick, listenerOptions);
+    window.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener('click', onDocClick, { capture: true } as any);
-      window.removeEventListener('keydown', onKey);
+      document.removeEventListener("click", onDocClick, listenerOptions);
+      window.removeEventListener("keydown", onKey);
     };
   }, []);
 
@@ -41,7 +42,8 @@ export default function MobileMenu({
         type="button"
         aria-controls="mobile-menu"
         aria-expanded={open}
-        aria-haspopup="menu"
+        aria-haspopup="true"
+        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
         onClick={() => setOpen((v) => !v)}
         className="inline-flex items-center justify-center rounded-md p-2 hover:text-amber-600 focus:outline-none"
       >
@@ -71,15 +73,15 @@ export default function MobileMenu({
       {open && (
         <nav
           id="mobile-menu"
-          role="menu"
+          aria-label="Mobile navigation"
           className="border-border bg-background absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border p-1 shadow-lg"
         >
           {nav.map((n) => (
             <a
               key={n.url}
-              role="menuitem"
               href={n.url}
-              className="hover:bg-accent hover:text-accent block rounded-md px-3 py-2"
+              className={`hover:bg-accent hover:text-accent block rounded-md px-3 py-2 ${n.current ? "text-primary font-semibold" : ""}`}
+              aria-current={n.current ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
               {n.label}

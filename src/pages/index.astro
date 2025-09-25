@@ -80,7 +80,7 @@ const tagCounts = Object.entries(
     <div class="flex flex-row gap-2" aria-label="Quick tags">
       {
         quickTags.map((t) => (
-          <Button asChild variant="secondary" size="sm">
+          <Button key={t} asChild variant="secondary" size="sm">
             <a href={`/recipes?tag=${t}`}>#{t}</a>
           </Button>
         ))
