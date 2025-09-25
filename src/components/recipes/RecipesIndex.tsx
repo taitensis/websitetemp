@@ -12,6 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { resolveNavHref } from "@/lib/navigation";
 
 /* ---------------- types ---------------- */
 
@@ -199,7 +200,7 @@ export default function RecipesIndex({ items }: Props) {
 
 function RecipeCard({ item }: { item: RecipeItem }) {
   const base = import.meta.env.BASE_URL; // "/nourriture-quotidienne/" on GH Pages
-  const href = `${base}recipes/${item.slug}`;
+  const href = resolveNavHref(`recipes/${item.slug}`);
   const imgSrc = item.image
     ? item.image.startsWith("/")
       ? base + item.image.slice(1)

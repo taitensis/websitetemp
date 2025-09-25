@@ -1,39 +1,59 @@
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-function applyTheme(theme: "light" | "dark") {
-  const root = document.documentElement;
-  if (theme === "dark") root.classList.add("dark");
-  else root.classList.remove("dark");
-}
+import type { Theme } from "@/lib/theme";
+import { THEME_STORAGE_KEY, applyTheme, getInitialTheme } from "@/lib/theme";
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    const saved = (localStorage.getItem("theme") as "light" | "dark") || null;
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const initial = saved ?? (prefersDark ? "dark" : "light");
-    setTheme(initial);
-    applyTheme(initial);
+    applyTheme(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handlePreferenceChange = () => {
+      const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+      if (!stored) {
+        setTheme(mediaQuery.matches ? "dark" : "light");
+      }
+    };
+
+    mediaQuery.addEventListener("change", handlePreferenceChange);
+    return () => mediaQuery.removeEventListener("change", handlePreferenceChange);
+  }, []);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === THEME_STORAGE_KEY) {
+        const value = event.newValue as Theme | null;
+        if (value === "dark" || value === "light") {
+          setTheme(value);
+        } else if (event.newValue === null) {
+          setTheme(getInitialTheme());
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   function toggle() {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    localStorage.setItem("theme", next);
-    applyTheme(next);
+    window.localStorage.setItem(THEME_STORAGE_KEY, next);
   }
 
   return (
     <Button
+      type="button"
       variant="ghost"
       size="icon"
       onClick={toggle}
       aria-label="Toggle theme"
+      aria-pressed={theme === "dark"}
       className="rounded-full">
       {theme === "dark" ? (
         <Sun className="h-5 w-5" />

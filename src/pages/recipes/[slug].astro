@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 import { Badge } from "@/components/ui/badge";
 import RecipeSections from "@/components/recipes/RecipeSections.tsx";
+import { resolveNavHref } from "@/lib/navigation";
 
 const imageOnRight = true;
 
@@ -62,7 +63,7 @@ const timeParts = [
               <span class="sr-only">Tags</span>
               {data.tags.map((tag: string) => (
                 <a
-                  href={`${base}tags/${slugify(tag)}`}
+                  href={resolveNavHref(`tags/${slugify(tag)}`)}
                   class="inline-block"
                   title={`View ${tag} recipes`}
                   rel="tag"
@@ -99,7 +100,7 @@ const timeParts = [
             <span class="sr-only">Tags</span>
             {data.tags.map((tag: string) => (
               <a
-                href={`${base}tags/${slugify(tag)}`}
+                href={resolveNavHref(`tags/${slugify(tag)}`)}
                 class="inline-block"
                 title={`View ${tag} recipes`}
                 rel="tag"
