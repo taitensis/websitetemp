@@ -36,7 +36,7 @@ export type RecipeItem = {
 type Props = {
   items: RecipeItem[];
   locale?: Locale;
-  makeHref: (slug: string) => string;
+  localePrefix?: string;
 };
 
 const SORT_OPTIONS = [
@@ -62,6 +62,10 @@ const join = (a: string, b: string) => `${a.replace(/\/+$/, '')}/${b.replace(/^\
 export default function RecipesIndex({ items, locale, localePrefix }: Props) {
   const tt = React.useMemo<Tt>(() => makeUiT(locale ?? DEFAULT_LOCALE), [locale]);
   const ttTagRaw = React.useMemo<TtTag>(() => makeTagsT(locale ?? DEFAULT_LOCALE), [locale]);
+  const hrefPrefix = React.useMemo(
+    () => (localePrefix != null ? localePrefix : withBase('/')),
+    [localePrefix]
+  );
 
   // Safe wrapper: never crash if a tag slug is missing in the dictionary
   const tTagSafe = React.useCallback(
@@ -114,14 +118,18 @@ export default function RecipesIndex({ items, locale, localePrefix }: Props) {
     let out = items.filter((i) => {
       const title = fold(i.title);
       const tagLabels = (i.tags || []).map((t) => fold(tTagSafe(t)));
+      // Check the normalized title and tag labels against the current search query.
       const matchesQuery = !q || title.includes(q) || tagLabels.some((t) => t.includes(q));
+      // Keep recipes that match at least one selected tag (if any are active).
       const matchesTags = activeTags.size === 0 || (i.tags || []).some((t) => activeTags.has(t));
+      // Only allow recipes with the chosen difficulty levels.
       const matchesDiff =
         difficulties.size === 0 || (i.difficulty && difficulties.has(i.difficulty));
       return matchesQuery && matchesTags && matchesDiff;
     });
 
     out.sort((a, b) => {
+      // Sort recipes by date or duration depending on the chosen option.
       if (sort === 'newest') {
         const bDate = toMs(b.date);
         const aDate = toMs(a.date);
@@ -248,7 +256,7 @@ export default function RecipesIndex({ items, locale, localePrefix }: Props) {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
-            <RecipeCard key={r.slug} item={r} ttTag={tTagSafe} localePrefix={localePrefix} />
+            <RecipeCard key={r.slug} item={r} ttTag={tTagSafe} localePrefix={hrefPrefix} />
           ))}
         </div>
       )}
