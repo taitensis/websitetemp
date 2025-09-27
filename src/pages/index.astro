@@ -1,181 +1,150 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import hero from "@/assets/hero.png";
-import { makeT, DEFAULT_LOCALE, type Locale } from "@/i18n/ui";
-const L = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
-const tt = makeT(L);
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import hero from '@/assets/hero.png';
+import { join } from '@/lib/utils';
+import { getCollection } from 'astro:content';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Typography } from '@/components/ui/typography';
+import FeaturedRecipes from '@/components/FeaturedRecipes.astro';
+import { Search } from 'lucide-react';
+import SeasonalPicks from '@/components/SeasonalPicks.astro';
+import TagCount from '@/components/TagCount.astro';
+import LatestRecipes from '@/components/LatestRecipes.astro';
+import { t, setLocale, DEFAULT_LOCALE, type Locale } from '@/i18n/ui';
 
-import { getCollection } from "astro:content";
+const locale = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+setLocale(locale); // Set the global locale context
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+const base = import.meta.env.BASE_URL;
+const localePrefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`;
+const localeBase = join(base, localePrefix);
 
-import { Typography } from "@/components/ui/typography";
-
-// Recipes
-const raw = await getCollection("recipes");
+// Gets recipes
+const raw = await getCollection('recipes');
 const all = raw
   .slice()
   .sort((a, b) => new Date(b.data.date as any).getTime() - new Date(a.data.date as any).getTime());
 
-// Tags
-const allTags = Array.from(new Set(all.flatMap((r) => r.data.tags ?? []))).sort();
-const quickTags = ["breakfast", "mains", "dessert"].filter((t) => allTags.includes(t));
+// Filters recipes based on Locale
+const filtered = all.filter((r) =>
+  locale === DEFAULT_LOCALE
+    ? !r.data.lang || r.data.lang === DEFAULT_LOCALE
+    : r.data.lang === locale
+);
 
-// Featured / latest
-const featured = all.find((r) => r.data.featured);
-const latest = all.slice(0, 6);
+// *** FEATURED ***
+const featuredList = filtered.filter((r) => r.data.featured).slice(0, 3);
 
-// Seasonal
+// // *** LATEST ***
+const latestList = [...filtered]
+  .sort((a, b) => {
+    const t = (d: unknown) => {
+      const n = d ? new Date(d as any).getTime() : NaN;
+      return Number.isNaN(n) ? -Infinity : n; // undated go last
+    };
+    return t(b.data.date) - t(a.data.date);
+  })
+  .slice(0, 6);
+
+// *** SEASONAL ***
 const now = new Date();
 const month = now.getMonth() + 1;
-const seasons = ["winter", "spring", "summer", "autumn"] as const;
+const seasons = ['winter', 'spring', 'summer', 'autumn'] as const;
 const season = seasons[Math.floor((month % 12) / 3)];
-const seasonal = all.filter((r) => r.data.month === month || r.data.season === season).slice(0, 4);
-const seasonalList = seasonal.length ? seasonal : all.slice(0, 4);
+const seasonalList = filtered
+  .filter((r) =>
+    (r.data.month && r.data.month === month) ||
+    (r.data.season && r.data.season === season)
+  )
+  .slice(0, 4);
 
-// Top tags (by count)
-const tagCounts = Object.entries(
-  all
-    .flatMap((r) => r.data.tags ?? [])
-    .reduce((acc, t) => ((acc[t] = (acc[t] || 0) + 1), acc), {} as Record<string, number>)
+// *** TAGS ***
+// count tags from the filtered set
+const tagCountsList = Object.entries(
+  filtered.reduce((acc, r) => {
+    for (const t of r.data.tags ?? []) {
+      if (!t) continue;
+      acc[t] = (acc[t] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>)
 )
+// sort + limit here (component is dumb)
   .sort((a, b) => b[1] - a[1])
   .slice(0, 8);
 ---
-
 <BaseLayout
-  title="Home"
+  title={t('nav.home')}
   description="Welcome to Nourriture Quotidienne, a collection of everyday recipes."
-  bgUrl={hero}
+  bgUrl={hero.src}
+  mainClass="px-0 py-0 md:py-8"
 >
-  <!-- Hero -->
-  <section class="mx-auto max-w-6xl space-y-6 px-6">
-    <div>
-      <Typography variant="h1">Nourriture Quotidienne</Typography>
-      <Typography variant="lead">Everyday recipes, quick and cozy.</Typography>
-    </div>
+  <!-- Hero Section - Enhanced with new spacing and transitions -->
+  <section
+    class="mx-auto w-full max-w-6xl mt-lg"
+  >
+    <header class="text-center">
+      <Typography variant="h1" className="">{t('welcome.title')}</Typography>
+      <Typography variant="lead" className="my-lg">
+        {t('welcome.tagline')}
+      </Typography>
+    </header>
 
-    <!-- Search form -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-      <form action="/recipes" class="flex gap-2" role="search" aria-label="Site search">
-        <Input
-          type="search"
-          name="q"
-          placeholder="Search recipes…"
-          aria-label="Search recipes"
-          autoComplete="off"
-          className="bg-card dark:bg-card"
-        />
-        <Button type="submit">Search</Button>
-      </form>
-      <a href="/recipes/random" class={buttonVariants({ variant: "secondary", size: "sm" })}>
-        Surprise me
-      </a>
-    </div>
+    <!-- Enhanced Search Section -->
+      <div class="">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <form
+            action={join(localeBase, 'recipes')}
+            class="flex flex-1 items-center gap-3"
+            role="search"
+            aria-label={t('a11y.search_recipes')}
+          >
+            <label for="site-search" class="sr-only">{t('a11y.search_recipes')}</label>
 
-    <!-- Quick tags + random -->
-    <div class="flex flex-row gap-2" aria-label="Quick tags">
-      {
-        quickTags.map((t) => (
-          <Button asChild variant="secondary" size="sm">
-            <a href={`/recipes?tag=${t}`}>#{t}</a>
-          </Button>
-        ))
-      }
-    </div>
-  </section>
-
-  <!-- Featured -->
-  {
-    featured && (
-      <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
-        <Typography variant="h2">Featured</Typography>
-        <a href={`/recipes/${featured.slug}/`} class="block">
-          <Card className="overflow-hidden">
-            {featured.data.images?.[0]?.src && (
-              <img
-                class="aspect-[21/9] w-full object-cover"
-                src={featured.data.images[0].src}
-                alt={featured.data.images?.[0]?.alt ?? ""}
-                loading="lazy"
+            <div class="relative flex-1">
+              <!-- Enhanced Input with new design system colors -->
+              <Input
+                id="site-search"
+                type="search"
+                name="q"
+                placeholder={t('search.search_placeholder')}
+                aria-label={t('a11y.search_recipes')}
+                autoComplete="on"
+                className="bg-input text-foreground placeholder:text-muted-foreground hover:bg-input-hover hover:border-border-hover focus:bg-input-focus focus:border-primary focus:ring-primary/20 focus:ring-offset-background h-12 w-full rounded-xl border-2 pl-4 pr-4 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2"
               />
-            )}
-            <CardContent className="p-4">
-              <h3 class="text-lg font-semibold hover:underline">{featured.data.title}</h3>
-            </CardContent>
-          </Card>
-        </a>
-      </section>
-    )
-  }
+            </div>
 
-  <!-- Latest -->
-  <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
-    <Typography variant="h2">Latest recipes</Typography>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        latest.map((r) => (
-          <a key={r.slug} href={`/recipes/${r.slug}/`} class="group block">
-            <Card className="overflow-hidden">
-              {r.data.images?.[0]?.src && (
-                <img
-                  src={r.data.images[0].src}
-                  class="aspect-[4/3] w-full object-cover transition group-hover:brightness-105"
-                  alt={r.data.images?.[0]?.alt ?? ""}
-                  loading="lazy"
-                />
-              )}
-              <CardContent className="p-4">
-                <h3 class="font-semibold group-hover:underline">{r.data.title}</h3>
-                <p class="text-muted-foreground text-sm">
-                  {r.data.time?.total ?? "—"} min · {r.data.yield ?? "—"}
-                </p>
-              </CardContent>
-            </Card>
-          </a>
-        ))
-      }
-    </div>
+            <!-- Enhanced Search Button -->
+            <Button type="submit" variant="default" size="lg">
+              <span class="hidden sm:inline">{t('actions.search')}</span>
+              <span class="sm:hidden">
+                <Search />
+              </span>
+            </Button>
+          </form>
+        </div>
+
+        <!-- Enhanced Search Suggestions -->
+        <div class="mt-3 text-center">
+          <p
+            class="text-foreground text-sm opacity-70 transition-opacity duration-200 hover:opacity-100"
+          >
+            {t('welcome.search_hint')}
+          </p>
+        </div>
+      </div>
   </section>
 
-  <!-- Seasonal -->
-  <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
-    <Typography variant="h2">Seasonal picks</Typography>
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {
-        seasonalList.map((r) => (
-          <a key={r.slug} href={`/recipes/${r.slug}/`} class="block">
-            <Card className="p-3 hover:shadow-sm">
-              <h3 class="font-medium">{r.data.title}</h3>
-            </Card>
-          </a>
-        ))
-      }
-    </div>
-  </section>
+  <!-- Featured Recipes Section -->
+  <FeaturedRecipes items={featuredList} base={base} />
 
-  <!-- Browse by tag -->
-  <section class="mx-auto mt-10 max-w-6xl space-y-4 px-6">
-    <Typography variant="h2">Browse by tag</Typography>
-    <div class="flex flex-wrap gap-2">
-      {
-        tagCounts.map(([t, c]) => (
-          <a key={t} href={`/recipes?tag=${t}`}>
-            <Badge variant="secondary">
-              {t} <span class="ml-1 text-zinc-500">({c as number})</span>
-            </Badge>
-          </a>
-        ))
-      }
-    </div>
-  </section>
+  <!-- Latest Recipes - Enhanced with better spacing and hover states -->
+   <LatestRecipes items={latestList} base={base}/>
 
-  <!-- Greeting / i18n
-  <section class="mx-auto max-w-6xl px-5 mt-12 space-y-4">
-    <h1 class="text-3xl tracking-tight drop-shadow-lg">{tt("hi")}</h1>
-    <p class="leading-7 drop-shadow-lg">{tt("welcome_message")}</p>
-  </section> -->
+  <!-- Seasonal Picks - Enhanced with better visual hierarchy -->
+  <SeasonalPicks items={seasonalList} base={base} />
+
+  <!-- Browse by Tags - Enhanced with better badge styling -->
+  <TagCount items={tagCountsList} base={base} />
 </BaseLayout>

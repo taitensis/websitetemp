@@ -1,0 +1,113 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import LangMenu from "@/components/LangMenu";
+import ThemeToggle from "@/components/ThemeToggle";
+import MobileMenu from "@/components/MobileMenu";
+
+import { t, setLocale, DEFAULT_LOCALE, type Locale } from '@/i18n/ui';
+import { LOCALES, getLocaleLabel } from "@/i18n/ui";
+import { getRelativeLocaleUrl } from "astro:i18n";
+
+let pagePath = '/';
+const pathname = Astro.url.pathname;
+console.log("Pathname", pathname);
+
+const withoutBase = pathname.replace('/nourriture-quotidienne', '');
+console.log("withoutBase", withoutBase);
+
+const localePattern = new RegExp(`^/(${LOCALES.join('|')})/?`);
+console.log("localePattern", localePattern);
+const withoutLocale = withoutBase.replace(localePattern, '');
+console.log("withoutLocale", withoutLocale);
+
+pagePath = withoutLocale.startsWith('/') ? withoutLocale : `/${withoutLocale}`;
+console.log("pagePath", pagePath);
+if (pagePath === '/') pagePath = '/'; // Ensure homepage is just '/'
+console.log("pagePath", pagePath);
+
+console.log("Extracted page path:", pagePath);
+
+const locale = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+
+console.log("Full URL:", Astro.url.href);
+console.log("Pathname:", Astro.url.pathname);
+console.log("Current locale:", locale);
+console.log("Available locales:", LOCALES);
+
+const currentPath = Astro.url.pathname.replace(/^\/[^\/]*/, '') || '/';
+console.log("Current path:", currentPath);
+
+const urls = LOCALES.map((l) => {
+  const url = getRelativeLocaleUrl(l, pagePath);
+  console.log(`URL for ${l}:`, url);
+  return url;
+});
+
+const currentUrl = getRelativeLocaleUrl(locale, currentPath);
+console.log("Current URL:", currentUrl);
+
+/* const urls = LOCALES.map((l) => {
+  const url = getRelativeLocaleUrl(l, currentPath);
+  console.log(`URL for ${l}:`, url);
+  return url;
+}); */
+
+const langItems = LOCALES.map((l, i) => ({
+  label: getLocaleLabel(l),
+  url: urls[i],
+  current: urls[i] === currentUrl,
+}));
+
+console.log("Fixed Lang items:", langItems);
+
+const nav = [
+  { label: t("nav.home"),    url: getRelativeLocaleUrl(locale, "/") },
+  { label: t("nav.recipes"), url: getRelativeLocaleUrl(locale, "/recipes") },
+  { label: t("nav.about"),   url: getRelativeLocaleUrl(locale, "/about") },
+];
+
+function isActive(href: string) {
+  const norm = (s: string) => s.replace(/\/+$/, "");
+  return norm(Astro.url.pathname) === norm(href);
+}
+---
+
+<header class="sticky top-0 z-50 border-b px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+  <div class="mx-auto flex max-w-6xl items-center justify-between">
+    <!-- Brand -->
+    <div class="flex-shrink-0">
+      <a
+        href={getRelativeLocaleUrl(locale, "/")}
+        class="text-xl font-semibold tracking-tight transition-colors hover:text-primary"
+        aria-label="Nourriture Quotidienne — Home"
+      >
+        Nourriture Quotidienne
+      </a>
+    </div>
+
+    <!-- Mobile -->
+    <div class="md:hidden">
+      <MobileMenu client:load langItems={langItems} currentLabel={getLocaleLabel(locale)} nav={nav} />
+    </div>
+
+    <!-- Desktop -->
+    <nav class="hidden items-center gap-6 md:flex" aria-label="Main navigation">
+      <div class="flex items-center gap-2">
+        {nav.map((item) => (
+          <a
+            href={item.url}
+            aria-current={isActive(item.url) ? "page" : undefined}
+            data-active={isActive(item.url) || undefined}
+            class={buttonVariants({ variant: "ghost", size: "default" })}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+      <div class="flex items-center gap-2">
+        <LangMenu client:load items={langItems} currentLabel={getLocaleLabel(locale)} />
+        <ThemeToggle client:load />
+      </div>
+    </nav>
+  </div>
+</header>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 // Typography Component accepting a "variant" prop for different text elements
 interface TypographyProps {
@@ -16,63 +17,47 @@ interface TypographyProps {
     | 'inlineCode';
   className?: string;
   children: React.ReactNode;
+  as?: React.ElementType; // Allow custom element override
 }
 
-export const Typography: React.FC<TypographyProps> = ({ variant, className = '', children }) => {
-  switch (variant) {
-    case 'h1':
-      return (
-        <h1
-          className={`scroll-m-20 text-balance text-4xl font-extrabold tracking-tight ${className}`}
-        >
-          {children}
-        </h1>
-      );
-    case 'h2':
-      return (
-        <h2
-          className={`scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ${className}`}
-        >
-          {children}
-        </h2>
-      );
-    case 'h3':
-      return (
-        <h3 className={`scroll-m-20 text-2xl font-semibold tracking-tight ${className}`}>
-          {children}
-        </h3>
-      );
-    case 'h4':
-      return (
-        <h4 className={`scroll-m-20 text-xl font-semibold tracking-tight ${className}`}>
-          {children}
-        </h4>
-      );
-    case 'p':
-      return <p className={`leading-7 [&:not(:first-child)]:mt-6 ${className}`}>{children}</p>;
-    case 'blockquote':
-      return (
-        <blockquote className={`mt-6 border-l-2 pl-6 italic ${className}`}>{children}</blockquote>
-      );
-    case 'lead':
-      return <p className={`text-muted-foreground text-xl ${className}`}>{children}</p>;
-    case 'large':
-      return <div className={`text-lg font-semibold ${className}`}>{children}</div>;
-    case 'small':
-      return <div className={`text-sm font-medium leading-none ${className}`}>{children}</div>;
-    case 'muted':
-      return <p className={`text-muted-foreground text-sm ${className}`}>{children}</p>;
-    case 'inlineCode':
-      return (
-        <code
-          className={`bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold ${className}`}
-        >
-          {children}
-        </code>
-      );
-    default:
-      return <p className={className}>{children}</p>;
-  }
+export const Typography: React.FC<TypographyProps> = ({
+  variant,
+  className = '',
+  children,
+  as,
+}) => {
+  const classes = {
+    h1: 'scroll-m-20 text-balance text-4xl font-extrabold tracking-tight',
+    h2: 'scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0',
+    h3: 'scroll-m-20 text-2xl font-semibold tracking-tight',
+    h4: 'scroll-m-20 text-xl font-semibold tracking-tight',
+    p: 'leading-7 [&:not(:first-child)]:mt-6',
+    blockquote: 'mt-6 border-l-2 pl-6 italic',
+    lead: 'text-muted-foreground text-xl',
+    large: 'text-lg font-semibold',
+    small: 'text-sm font-medium leading-none',
+    muted: 'text-muted-foreground text-sm',
+    inlineCode: 'bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold',
+  };
+
+  // Default element mapping
+  const elements = {
+    h1: 'h1',
+    h2: 'h2',
+    h3: 'h3',
+    h4: 'h4',
+    p: 'p',
+    blockquote: 'blockquote',
+    lead: 'p',
+    large: 'div',
+    small: 'small',
+    muted: 'p',
+    inlineCode: 'code',
+  };
+
+  const Component = as || elements[variant] || 'p';
+
+  return <Component className={cn(classes[variant], className)}>{children}</Component>;
 };
 
 // Generic List component
@@ -85,31 +70,31 @@ interface ListProps<T> {
 
 export function List<T>({ as: Component = 'ul', items, renderItem, className = '' }: ListProps<T>) {
   return (
-    <Component className={`my-6 ml-6 list-disc [&>li]:mt-2 ${className}`}>
+    <Component className={cn('my-6 ml-6 list-disc [&>li]:mt-2', className)}>
       {items.map((item, index) => (
-        <li key={index}>{renderItem ? renderItem(item, index) : item}</li>
+        <li key={index}>{renderItem ? renderItem(item, index) : String(item)}</li>
       ))}
     </Component>
   );
 }
 
-// Generic Table component
-interface Column<T> {
+// RENAMED to avoid conflict with shadcn Table
+interface DataColumn<T> {
   key: keyof T;
   label: string;
   align?: 'left' | 'center' | 'right';
   renderCell?: (item: T) => React.ReactNode;
 }
 
-interface TableProps<T> {
-  columns: Column<T>[];
+interface DataTableProps<T> {
+  columns: DataColumn<T>[];
   data: T[];
   className?: string;
 }
 
-export function Table<T>({ columns, data, className = '' }: TableProps<T>) {
+export function DataTable<T>({ columns, data, className = '' }: DataTableProps<T>) {
   return (
-    <div className={`my-6 w-full overflow-x-auto ${className}`}>
+    <div className={cn('my-6 w-full overflow-x-auto', className)}>
       <table className="w-full">
         <thead>
           <tr className="even:bg-muted border-t">
@@ -133,7 +118,7 @@ export function Table<T>({ columns, data, className = '' }: TableProps<T>) {
                   align={align}
                   className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
                 >
-                  {renderCell ? renderCell(row) : row[key]}
+                  {renderCell ? renderCell(row) : String(row[key])}
                 </td>
               ))}
             </tr>

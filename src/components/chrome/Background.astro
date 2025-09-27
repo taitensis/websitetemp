@@ -1,0 +1,20 @@
+---
+export interface Props {
+  src: string;               // relative or absolute
+  overlayLight?: string;     // e.g. "bg-white/80"
+  overlayDark?: string;      // e.g. "dark:bg-black/90"
+}
+
+const {
+  src,
+  overlayLight = "bg-white/80",
+  overlayDark = "dark:bg-black/90",
+} = Astro.props;
+---
+
+<div
+  class="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat"
+  style={`background-image:url('${src}')`}
+  aria-hidden="true"
+></div>
+<div class={`pointer-events-none absolute inset-0 ${overlayLight} ${overlayDark}`} aria-hidden="true"></div>

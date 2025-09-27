@@ -1,173 +1,126 @@
-import { DEFAULT_LOCALE, type Locale, makeTranslator, makeT as coreMakeT } from './core';
+// src/i18n/ui.ts
+import en from './locales/en.json';
+import fr from './locales/fr.json';
+import es from './locales/es.json';
+import nl from './locales/nl.json';
 
-const base = {
-  hi: 'Hey!',
-  welcome_message:
-    'I’m Maxime, and this site is where I keep my recipes and share them. It’s no five-star restaurant, just everyday cooking. Feel free to try them out and let me discover yours. Enjoy your meal! (…and watch out: your stomach might start growling!)',
-  home: 'Home',
-  recipes: 'Recipes',
-  about: 'About',
-  all_recipes: 'All recipes',
-  filter_recipes: 'Filter recipes',
-  search: 'Search',
-  no_results: 'No results',
-  view_recipe: 'View recipe',
-  title_or_tag: 'Title or tag...',
-  sort: 'Sort',
-  sort_newest: 'Newest',
-  sort_oldest: 'Oldest',
-  sort_a_z: 'A → Z',
-  sort_z_a: 'Z → A',
-  fastest: 'Fastest',
-  longest: 'Longest',
-  difficulty: 'Difficulty',
-  easy: 'Easy',
-  medium: 'Medium',
-  hard: 'Hard',
-  reset_filters: 'Reset filters',
-  no_tags_yet: 'No tags yet',
-  prep_time: 'Prep time',
-  cook_time: 'Cook time',
-  total_time: 'Total time',
-  servings: 'Servings',
-  serving_singular: 'serving',
-  serving_plural: 'servings',
-  person_singular: 'person',
-  person_plural: 'people',
-  ingredients: 'Ingredients',
-  steps: 'Steps',
-  notes: 'Notes',
-  nutritional_info: 'Nutritional info',
-  yield: 'For {count} {person|people}',
+/* ---------- types & default ---------- */
+export type Locale = 'en' | 'fr' | 'es' | 'nl';
+export const DEFAULT_LOCALE: Locale = 'en';
+
+type TranslationParams = Record<string, unknown>;
+
+/* ---------- dictionaries ---------- */
+export const translations = {
+  en,
+  fr,
+  es,
+  nl,
 } as const;
 
-export type UiStrings = typeof base;
+/* ---------- helpers ---------- */
+function flatten(obj: Record<string, any>, prefix = ''): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(obj ?? {})) {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      Object.assign(out, flatten(v, key));
+    } else {
+      out[key] = String(v);
+    }
+  }
+  return out;
+}
 
-const dicts: Partial<Record<Locale, Partial<UiStrings>>> = {
-  en: base,
-  fr: {
-    hi: 'Coucou !',
-    welcome_message:
-      "Moi c’est Maxime et ce site me permet de conserver mes recettes et de les partager. Ce n’est pas un cinq étoiles, juste des recettes du quotidien. N'hésitez pas à les essayer et à me faire découvrir les vôtres. Bon ap' ! (et attention, votre estomac risque de gargouiller !)",
-    home: 'Accueil',
-    recipes: 'Recettes',
-    about: 'À propos',
-    all_recipes: 'Toutes les recettes',
-    filter_recipes: 'Filtrer les recettes',
-    search: 'Rechercher',
-    no_results: 'Aucun résultat',
-    view_recipe: 'Voir la recette',
-    title_or_tag: 'Titre ou tag…',
-    sort: 'Trier',
-    sort_newest: 'Plus récentes',
-    sort_oldest: 'Plus anciennes',
-    sort_a_z: 'A → Z',
-    sort_z_a: 'Z → A',
-    fastest: 'La plus rapide',
-    longest: 'La plus longue',
-    difficulty: 'Difficulté',
-    easy: 'Facile',
-    medium: 'Moyenne',
-    hard: 'Difficile',
-    reset_filters: 'Réinitialiser les filtres',
-    no_tags_yet: 'Pas encore de tags',
-    prep_time: 'Préparation',
-    cook_time: 'Cuisson',
-    total_time: 'Temps total',
-    servings: 'Portions',
-    serving_singular: 'portion',
-    serving_plural: 'portions',
-    person_singular: 'personne',
-    person_plural: 'personnes',
-    ingredients: 'Ingrédients',
-    steps: 'Étapes',
-    notes: 'Notes',
-    nutritional_info: 'Valeurs nutritionnelles',
-    yield: 'Pour {count} {personne|personnes}',
-  },
-  es: {
-    hi: '¡Hola!',
-    welcome_message:
-      'Soy Maxime y aquí guardo mis recetas y las comparto. No es un cinco estrellas, sólo recetas del día a día. Anímate a probarlas y a hacerme descubrir las tuyas. ¡Buen provecho! (y cuidado, ¡puede que salgas con hambre!)',
-    home: 'Inicio',
-    recipes: 'Recetas',
-    about: 'Acerca de mí',
-    all_recipes: 'Todas las recetas',
-    filter_recipes: 'Filtrar recetas',
-    search: 'Buscar',
-    no_results: 'Sin resultados',
-    view_recipe: 'Ver receta',
-    title_or_tag: 'Título o etiqueta…',
-    sort: 'Ordenar',
-    sort_newest: 'Más nuevas',
-    sort_oldest: 'Más antiguas',
-    sort_a_z: 'A → Z',
-    sort_z_a: 'Z → A',
-    fastest: 'Más rápida',
-    longest: 'Más larga',
-    difficulty: 'Dificultad',
-    easy: 'Fácil',
-    medium: 'Media',
-    hard: 'Difícil',
-    reset_filters: 'Restablecer filtros',
-    no_tags_yet: 'Aún no hay tags',
-    prep_time: 'Preparación',
-    cook_time: 'Cocción',
-    total_time: 'Tiempo total',
-    servings: 'Raciones',
-    serving_singular: 'ración',
-    serving_plural: 'raciones',
-    person_singular: 'persona',
-    person_plural: 'personas',
-    ingredients: 'Ingredientes',
-    steps: 'Pasos',
-    notes: 'Notas',
-    nutritional_info: 'Información nutricional',
-    yield: 'Para {count} {persona|personas}',
-  },
-  nl: {
-    hi: 'Hey!',
-    welcome_message:
-      'Ik ben Maxime en hier bewaar ik mijn recepten en deel ik ze. Geen vijfsterrenrestaurant, gewoon alledaagse gerechten. Probeer ze gerust en laat mij de jouwe ontdekken. Smakelijk! (…en pas op: je krijgt er misschien honger van!)',
-    home: 'Home',
-    recipes: 'Recepten',
-    about: 'Over mij',
-    all_recipes: 'Alle recepten',
-    filter_recipes: 'Recepten filteren',
-    search: 'Zoeken',
-    no_results: 'Geen resultaten',
-    view_recipe: 'Recept bekijken',
-    title_or_tag: 'Titel of label…',
-    sort: 'Sorteren',
-    sort_newest: 'Nieuwste',
-    sort_oldest: 'Oudste',
-    sort_a_z: 'A → Z',
-    sort_z_a: 'Z → A',
-    fastest: 'Snelst',
-    longest: 'Langst',
-    difficulty: 'Moeilijkheidsgraad',
-    easy: 'Makkelijk',
-    medium: 'Gemiddeld',
-    hard: 'Moeilijk',
-    reset_filters: 'Filters resetten',
-    no_tags_yet: 'Nog geen tags',
-    prep_time: 'Bereiding',
-    cook_time: 'Koken',
-    total_time: 'Totale tijd',
-    servings: 'Porties',
-    serving_singular: 'portie',
-    serving_plural: 'porties',
-    person_singular: 'persoon',
-    person_plural: 'personen',
-    ingredients: 'Ingrediënten',
-    steps: 'Stappen',
-    notes: 'Notities',
-    nutritional_info: 'Voedingswaarden',
-    yield: 'Voor {count} {persoon|personen}',
-  },
-};
+/** ICU-ish plural + # number + named placeholders + simple {a|b} */
+function interpolate(template: string, params?: TranslationParams): string {
+  if (!params) return template;
 
-const _t = makeTranslator(base, dicts, DEFAULT_LOCALE);
-export const t = _t; // one-off: t(locale, "key", params)
-export const makeT = (loc?: Locale) => coreMakeT(_t)(loc);
-export const useT = makeT; // alias, so both imports work
+  // ICU plural with # number: {count, plural, one {# x} other {# y}}
+  template = template.replace(
+    /\{(\w+)\s*,\s*plural\s*,\s*one\s*\{([^}]*)\}\s*other\s*\{([^}]*)\}\s*\}/g,
+    (_, key, one, other) => {
+      const n = Number(params[key]);
+      const chosen = n === 1 ? one : other;
+      return chosen.replace(/#/g, isNaN(n) ? '#' : String(n));
+    }
+  );
+
+  // simple {a|b} based on params.count
+  template = template.replace(/\{([^{}|]+)\|([^{}|]+)\}/g, (_, singular, plural) => {
+    const c = Number(params.count);
+    return Number.isFinite(c) && c === 1 ? singular : plural;
+  });
+
+  // named placeholders: {name}
+  template = template.replace(/\{(\w+)\}/g, (_, key) =>
+    params[key] != null ? String(params[key]) : ''
+  );
+
+  return template;
+}
+
+/* ---------- build lookups ---------- */
+function buildLocaleMap(locale: Locale): Record<string, string> {
+  const base = flatten(translations.en);
+  const loc = flatten(translations[locale] as any);
+  return { ...base, ...loc };
+}
+
+/* ---------- global context ---------- */
+let currentLocale: Locale = DEFAULT_LOCALE;
+let currentMap: Record<string, string> = buildLocaleMap(DEFAULT_LOCALE);
+let fallbackMap: Record<string, string> = buildLocaleMap('en');
+
+/* ---------- global t function ---------- */
+export function setLocale(locale: Locale) {
+  currentLocale = locale;
+  currentMap = buildLocaleMap(locale);
+  fallbackMap = buildLocaleMap('en');
+}
+
+export function t(key: string, params?: TranslationParams): string {
+  const resolvedKey = key;
+  const raw = currentMap[resolvedKey] ?? currentMap[key] ?? fallbackMap[resolvedKey] ?? fallbackMap[key] ?? key;
+  return interpolate(raw, params);
+}
+
+/* ---------- legacy API (keep for backward compatibility) ---------- */
+export function makeT(locale: Locale = DEFAULT_LOCALE) {
+  const map = buildLocaleMap(locale);
+  const fallback = buildLocaleMap('en');
+
+  return (key: string, params?: TranslationParams) => {
+    const resolvedKey = key;
+    const raw = map[resolvedKey] ?? map[key] ?? fallback[resolvedKey] ?? fallback[key] ?? key;
+    return interpolate(raw, params);
+  };
+}
+
+/* ---------- React-style hook (optional) ---------- */
+export function useTranslation(locale: Locale) {
+  return { t: (key: string, params?: TranslationParams) => makeT(locale)(key, params), locale };
+}
+
+/* ---------- Locale labels & flags ---------- */
+export function getLocaleLabel(locale: Locale): string {
+  const labels: Record<Locale, string> = {
+    en: 'English',
+    fr: 'Français',
+    es: 'Español',
+    nl: 'Nederlands',
+  };
+  return labels[locale] ?? locale;
+}
+
+export const LOCALES: readonly Locale[] = ['en', 'fr', 'es', 'nl'] as const;
+
+export function getLocaleFlag(locale: Locale): string {
+  const flags: Record<Locale, string> = {
+    en: '🇺🇸',
+    fr: '🇫🇷',
+    es: '🇪🇸',
+    nl: '🇳🇱',
+  };
+  return flags[locale] ?? '🏳️';
+}
