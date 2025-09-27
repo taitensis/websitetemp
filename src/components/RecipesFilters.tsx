@@ -3,7 +3,13 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -32,8 +38,18 @@ type Props = {
 };
 
 export default function RecipesFilters({
-  t, allTags, tTag, query, setQuery, sort, setSort,
-  activeTags, toggleTag, difficulties, toggleDifficulty, reset
+  t,
+  allTags,
+  tTag,
+  query,
+  setQuery,
+  sort,
+  setSort,
+  activeTags,
+  toggleTag,
+  difficulties,
+  toggleDifficulty,
+  reset,
 }: Props) {
   return (
     <Card className="border-border gap-0">
@@ -81,7 +97,11 @@ export default function RecipesFilters({
                   value={d}
                   aria-label={t(`difficulty.${d}`)}
                   data-state={difficulties.has(d) ? 'on' : 'off'}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleDifficulty(d); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleDifficulty(d);
+                  }}
                   type="button"
                   className="capitalize"
                 >
@@ -103,7 +123,11 @@ export default function RecipesFilters({
                 <Badge
                   key={tag}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleTag(tag); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleTag(tag);
+                  }}
                   className={`cursor-pointer select-none ${active ? '' : 'opacity-60 hover:opacity-100'}`}
                   variant={active ? 'default' : 'secondary'}
                 >

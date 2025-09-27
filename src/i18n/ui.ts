@@ -81,7 +81,12 @@ export function setLocale(locale: Locale) {
 
 export function t(key: string, params?: TranslationParams): string {
   const resolvedKey = key;
-  const raw = currentMap[resolvedKey] ?? currentMap[key] ?? fallbackMap[resolvedKey] ?? fallbackMap[key] ?? key;
+  const raw =
+    currentMap[resolvedKey] ??
+    currentMap[key] ??
+    fallbackMap[resolvedKey] ??
+    fallbackMap[key] ??
+    key;
   return interpolate(raw, params);
 }
 

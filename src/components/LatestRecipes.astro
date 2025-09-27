@@ -1,14 +1,14 @@
 ---
-import { Typography } from "@/components/ui/typography";
-import { Card, CardContent } from "@/components/ui/card";
-import { withBase, join } from "@/lib/utils";
-import type { CollectionEntry } from "astro:content";
+import { Typography } from '@/components/ui/typography';
+import { Card, CardContent } from '@/components/ui/card';
+import { withBase, join } from '@/lib/utils';
+import type { CollectionEntry } from 'astro:content';
 import { t, setLocale, DEFAULT_LOCALE, type Locale } from '@/i18n/ui';
 
 const locale = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
 setLocale(locale); // Set the global locale context
 
-type RecipeEntry = CollectionEntry<"recipes">;
+type RecipeEntry = CollectionEntry<'recipes'>;
 
 interface Props {
   items?: RecipeEntry[];
@@ -19,20 +19,19 @@ const { items = [], base = import.meta.env.BASE_URL } = Astro.props;
 const localePrefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`;
 const localeBase = join(base, localePrefix);
 ---
-{items.length > 0 && (
-<section
-    class="mx-auto w-full max-w-6xl mt-2xl"
-  >
-    <div>
-      <Typography variant="h2">{t('recipes.latest_recipes')}</Typography>
-    </div>
 
-    <div class="grid gap-md mt-md grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-      {
-        items.map((r) => (
+{
+  items.length > 0 && (
+    <section class="mt-2xl mx-auto w-full max-w-6xl">
+      <div>
+        <Typography variant="h2">{t('recipes.latest_recipes')}</Typography>
+      </div>
+
+      <div class="gap-md mt-md grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+        {items.map((r) => (
           <a
             href={join(localeBase, `recipes/${r.slug}/`)}
-            class="group block hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 motion-reduce:transition-none motion-reduce:transform-none hover:-translate-y-0.5"
+            class="group focus-visible:ring-primary/30 focus-visible:ring-offset-background block transition-transform duration-200 hover:-translate-y-0.5 hover:no-underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transform-none motion-reduce:transition-none"
           >
             <Card className="overflow-hidden rounded-xl px-md py-md m-0 border border-border/60 bg-card/60 shadow-sm transition-colors transition-shadow duration-200 hover:border-border hover:bg-card hover:shadow-md">
               {r.data.images?.[0]?.src && (
@@ -46,15 +45,14 @@ const localeBase = join(base, localePrefix);
                 </div>
               )}
               <CardContent className="pb-0">
-                <h3 class="text-base font-medium text-foreground
-                         transition-colors duration-200 group-hover:text-primary">
+                <h3 class="text-foreground group-hover:text-primary text-base font-medium transition-colors duration-200">
                   {r.data.title}
                 </h3>
               </CardContent>
             </Card>
           </a>
-        ))
-      }
-    </div>
-  </section>
-  )}
+        ))}
+      </div>
+    </section>
+  )
+}

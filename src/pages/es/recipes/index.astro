@@ -14,7 +14,9 @@ const recipes = await getCollection('recipes');
 
 // 2) locale-filter ONCE (adjust if you want default-locale to only show default)
 const filtered = recipes.filter((r) =>
-  locale === DEFAULT_LOCALE ? (!r.data.lang || r.data.lang === DEFAULT_LOCALE) : r.data.lang === locale
+  locale === DEFAULT_LOCALE
+    ? !r.data.lang || r.data.lang === DEFAULT_LOCALE
+    : r.data.lang === locale
 );
 
 const localePrefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`;
@@ -31,6 +33,7 @@ const items = filtered.map((r) => ({
   summary: (r as any).data.summary ?? null,
 }));
 ---
+
 <BaseLayout
   title={t('recipes.all_recipes')}
   description={t('browse_all_recipes')}
@@ -38,7 +41,7 @@ const items = filtered.map((r) => ({
   mainClass="px-0 py-0 md:py-8"
 >
   <section class="mx-auto max-w-6xl px-5">
-    <h1 class="mb-10 scroll-m-20 text-balance text-4xl font-extrabold tracking-tight">
+    <h1 class="mb-10 scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
       {t('recipes.all_recipes')}
     </h1>
 

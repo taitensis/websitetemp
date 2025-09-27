@@ -72,7 +72,7 @@ export default function MobileMenu({
         <nav
           id="mobile-menu"
           role="menu"
-          className="border-border bg-background absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border p-1 shadow-lg"
+          className="border-border bg-background absolute top-full right-0 z-50 mt-2 w-48 rounded-lg border p-1 shadow-lg"
         >
           {nav.map((n) => (
             <a

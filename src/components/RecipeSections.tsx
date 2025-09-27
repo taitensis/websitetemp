@@ -149,14 +149,7 @@ export default function RecipeSections({
                 key={t.id}
                 id={`tab-${t.id}`}
                 value={t.id}
-                className="
-                  w-full whitespace-normal break-words rounded-lg px-3
-                  py-2 text-center
-                  text-[clamp(0.75rem,0.25vw+0.7rem,0.875rem)] font-semibold
-                  leading-snug data-[state=active]:bg-white
-                  data-[state=active]:shadow-sm sm:text-[clamp(0.875rem,0.3vw+0.8rem,1rem)]
-                  dark:data-[state=active]:bg-slate-950
-                  "
+                className="w-full rounded-lg px-3 py-2 text-center text-[clamp(0.75rem,0.25vw+0.7rem,0.875rem)] leading-snug font-semibold break-words whitespace-normal data-[state=active]:bg-white data-[state=active]:shadow-sm sm:text-[clamp(0.875rem,0.3vw+0.8rem,1rem)] dark:data-[state=active]:bg-slate-950"
               >
                 {t.label}
               </TabsTrigger>
@@ -215,7 +208,7 @@ export default function RecipeSections({
                       {i + 1}
                     </div>
 
-                    <p className="min-w-0 flex-1 break-words leading-relaxed">{s}</p>
+                    <p className="min-w-0 flex-1 leading-relaxed break-words">{s}</p>
                   </li>
                 ))}
               </ol>
@@ -232,7 +225,7 @@ export default function RecipeSections({
                 {notes.map((n, i) => (
                   <li
                     key={i}
-                    className="break-words leading-relaxed text-slate-600 dark:text-slate-300"
+                    className="leading-relaxed break-words text-slate-600 dark:text-slate-300"
                   >
                     {n}
                   </li>

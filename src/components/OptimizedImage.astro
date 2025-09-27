@@ -37,8 +37,7 @@ const isExternalUrl =
   typeof srcProp === 'string' &&
   (srcProp.startsWith('http://') || srcProp.startsWith('https://') || srcProp.startsWith('//'));
 
-const getSrcFrom = (v: string | ImageMetadata) =>
-  typeof v === 'string' ? v : v.src;
+const getSrcFrom = (v: string | ImageMetadata) => (typeof v === 'string' ? v : v.src);
 
 type SimpleImage = { src: string; width?: number; height?: number };
 
@@ -78,9 +77,7 @@ if (!isExternalUrl && typeof srcProp !== 'string') {
 
     if (widths.length > 0) {
       const srcSetImages = await Promise.all(
-        widths.map((w) =>
-          getImage({ src: srcProp, width: w, quality, format })
-        )
+        widths.map((w) => getImage({ src: srcProp, width: w, quality, format }))
       );
       srcSet = srcSetImages
         .map((itm, i) => {
@@ -112,12 +109,14 @@ if (!isExternalUrl && typeof srcProp !== 'string') {
   {...rest}
 />
 
-{loading === 'eager' && (
-  <link
-    rel="preload"
-    as="image"
-    href={optimizedImage.src}
-    imagesizes={sizes}
-    imagesrcset={srcSet}
-  />
-)}
+{
+  loading === 'eager' && (
+    <link
+      rel="preload"
+      as="image"
+      href={optimizedImage.src}
+      imagesizes={sizes}
+      imagesrcset={srcSet}
+    />
+  )
+}

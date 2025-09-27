@@ -1,38 +1,31 @@
 ---
 import { LOCALES, DEFAULT_LOCALE, type Locale } from '@/i18n/ui';
-import { getRelativeLocaleUrl } from "astro:i18n";
+import { getRelativeLocaleUrl } from 'astro:i18n';
 
 export interface Props {
   title: string;
   description: string;
-  image?: string;        // relative or absolute
+  image?: string; // relative or absolute
   noIndex?: boolean;
   locale: Locale;
-  canonical?: string;    // absolute if available
+  canonical?: string; // absolute if available
   jsonLd?: Record<string, any>; // optional extra JSON-LD
 }
 
-const {
-  title,
-  description,
-  image,
-  noIndex = false,
-  locale,
-  canonical,
-  jsonLd,
-} = Astro.props;
+const { title, description, image, noIndex = false, locale, canonical, jsonLd } = Astro.props;
 
-const site = Astro.site?.toString() || "";
+const site = Astro.site?.toString() || '';
 
 // Ensure absolute OG image URL when possible
-const ogImage = image
-  ? (site ? new URL(image, site).toString() : image)
-  : undefined;
+const ogImage = image ? (site ? new URL(image, site).toString() : image) : undefined;
 
 const OG_LOCALE: Record<string, string> = {
-  en: "en_US", fr: "fr_FR", es: "es_ES", nl: "nl_NL",
+  en: 'en_US',
+  fr: 'fr_FR',
+  es: 'es_ES',
+  nl: 'nl_NL',
 };
-const ogLocale = OG_LOCALE[locale] ?? "en_US";
+const ogLocale = OG_LOCALE[locale] ?? 'en_US';
 
 // hreflang alternates
 const altUrls = LOCALES.map((l) => ({
@@ -42,32 +35,33 @@ const altUrls = LOCALES.map((l) => ({
 
 // Minimal JSON-LD (mergeable)
 const baseLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Nourriture Quotidienne",
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Nourriture Quotidienne',
   description,
   url: site || undefined,
   inLanguage: locale,
-  author: { "@type": "Person", name: "Maxime C." },
+  author: { '@type': 'Person', name: 'Maxime C.' },
 };
 const mergedLd = jsonLd ? { ...baseLd, ...jsonLd } : baseLd;
 ---
+
 <title>{title}</title>
 <meta name="description" content={description} />
 {noIndex && <meta name="robots" content="noindex,nofollow" />}
 
 {canonical && <link rel="canonical" href={canonical} />}
 
-{altUrls.map(({ lang, href }) => (
-  <link rel="alternate" hreflang={lang} href={href} />
-))}
-{site && (
-  <link
-    rel="alternate"
-    hreflang="x-default"
-    href={new URL(getRelativeLocaleUrl(DEFAULT_LOCALE), site).toString()}
-  />
-)}
+{altUrls.map(({ lang, href }) => <link rel="alternate" hreflang={lang} href={href} />)}
+{
+  site && (
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={new URL(getRelativeLocaleUrl(DEFAULT_LOCALE), site).toString()}
+    />
+  )
+}
 
 <!-- Open Graph -->
 <meta charset="UTF-8" />
@@ -82,7 +76,7 @@ const mergedLd = jsonLd ? { ...baseLd, ...jsonLd } : baseLd;
 {ogImage && <meta property="og:image" content={ogImage} />}
 
 <!-- Twitter -->
-<meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+<meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
 {ogImage && <meta name="twitter:image" content={ogImage} />}

@@ -22,12 +22,11 @@ export default function LangMenu({ items, currentLabel }: { items: Item[]; curre
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-       className="hover:text-primary hover:bg-primary/3 rounded-full bg-transparent rounded-full inline-flex h-10 w-10 items-center justify-center
-                  text-foreground transition-colors"
-       aria-label="Change language"
-     >
-       <Languages className="h-5 w-5" aria-hidden="true" />
-     </DropdownMenuTrigger>
+        className="hover:text-primary hover:bg-primary/3 text-foreground inline-flex h-10 w-10 items-center justify-center rounded-full bg-transparent transition-colors"
+        aria-label="Change language"
+      >
+        <Languages className="h-5 w-5" aria-hidden="true" />
+      </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" className="">
         <DropdownMenuGroup>

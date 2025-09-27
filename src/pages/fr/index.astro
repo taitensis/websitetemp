@@ -53,27 +53,30 @@ const month = now.getMonth() + 1;
 const seasons = ['winter', 'spring', 'summer', 'autumn'] as const;
 const season = seasons[Math.floor((month % 12) / 3)];
 const seasonalList = filtered
-  .filter((r) =>
-    (r.data.month && r.data.month === month) ||
-    (r.data.season && r.data.season === season)
+  .filter(
+    (r) => (r.data.month && r.data.month === month) || (r.data.season && r.data.season === season)
   )
   .slice(0, 4);
 
 // *** TAGS ***
 // count tags from the filtered set
 const tagCountsList = Object.entries(
-  filtered.reduce((acc, r) => {
-    for (const t of r.data.tags ?? []) {
-      if (!t) continue;
-      acc[t] = (acc[t] || 0) + 1;
-    }
-    return acc;
-  }, {} as Record<string, number>)
+  filtered.reduce(
+    (acc, r) => {
+      for (const t of r.data.tags ?? []) {
+        if (!t) continue;
+        acc[t] = (acc[t] || 0) + 1;
+      }
+      return acc;
+    },
+    {} as Record<string, number>
+  )
 )
-// sort + limit here (component is dumb)
+  // sort + limit here (component is dumb)
   .sort((a, b) => b[1] - a[1])
   .slice(0, 8);
 ---
+
 <BaseLayout
   title={t('nav.home')}
   description="Welcome to Nourriture Quotidienne, a collection of everyday recipes."
@@ -81,9 +84,7 @@ const tagCountsList = Object.entries(
   mainClass="px-0 py-0 md:py-8"
 >
   <!-- Hero Section - Enhanced with new spacing and transitions -->
-  <section
-    class="mx-auto w-full max-w-6xl mt-lg"
-  >
+  <section class="mt-lg mx-auto w-full max-w-6xl">
     <header class="text-center">
       <Typography variant="h1" className="">{t('welcome.title')}</Typography>
       <Typography variant="lead" className="my-lg">
@@ -92,55 +93,55 @@ const tagCountsList = Object.entries(
     </header>
 
     <!-- Enhanced Search Section -->
-      <div class="">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <form
-            action={join(localeBase, 'recipes')}
-            class="flex flex-1 items-center gap-3"
-            role="search"
-            aria-label={t('a11y.search_recipes')}
-          >
-            <label for="site-search" class="sr-only">{t('a11y.search_recipes')}</label>
+    <div class="">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <form
+          action={join(localeBase, 'recipes')}
+          class="flex flex-1 items-center gap-3"
+          role="search"
+          aria-label={t('a11y.search_recipes')}
+        >
+          <label for="site-search" class="sr-only">{t('a11y.search_recipes')}</label>
 
-            <div class="relative flex-1">
-              <!-- Enhanced Input with new design system colors -->
-              <Input
-                id="site-search"
-                type="search"
-                name="q"
-                placeholder={t('search.search_placeholder')}
-                aria-label={t('a11y.search_recipes')}
-                autoComplete="on"
-                className="bg-input text-foreground placeholder:text-muted-foreground hover:bg-input-hover hover:border-border-hover focus:bg-input-focus focus:border-primary focus:ring-primary/20 focus:ring-offset-background h-12 w-full rounded-xl border-2 pl-4 pr-4 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2"
-              />
-            </div>
+          <div class="relative flex-1">
+            <!-- Enhanced Input with new design system colors -->
+            <Input
+              id="site-search"
+              type="search"
+              name="q"
+              placeholder={t('search.search_placeholder')}
+              aria-label={t('a11y.search_recipes')}
+              autoComplete="on"
+              className="bg-input text-foreground placeholder:text-muted-foreground hover:bg-input-hover hover:border-border-hover focus:bg-input-focus focus:border-primary focus:ring-primary/20 focus:ring-offset-background h-12 w-full rounded-xl border-2 pr-4 pl-4 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2"
+            />
+          </div>
 
-            <!-- Enhanced Search Button -->
-            <Button type="submit" variant="default" size="lg">
-              <span class="hidden sm:inline">{t('actions.search')}</span>
-              <span class="sm:hidden">
-                <Search />
-              </span>
-            </Button>
-          </form>
-        </div>
-
-        <!-- Enhanced Search Suggestions -->
-        <div class="mt-3 text-center">
-          <p
-            class="text-foreground text-sm opacity-70 transition-opacity duration-200 hover:opacity-100"
-          >
-            {t('welcome.search_hint')}
-          </p>
-        </div>
+          <!-- Enhanced Search Button -->
+          <Button type="submit" variant="default" size="lg">
+            <span class="hidden sm:inline">{t('actions.search')}</span>
+            <span class="sm:hidden">
+              <Search />
+            </span>
+          </Button>
+        </form>
       </div>
+
+      <!-- Enhanced Search Suggestions -->
+      <div class="mt-3 text-center">
+        <p
+          class="text-foreground text-sm opacity-70 transition-opacity duration-200 hover:opacity-100"
+        >
+          {t('welcome.search_hint')}
+        </p>
+      </div>
+    </div>
   </section>
 
   <!-- Featured Recipes Section -->
   <FeaturedRecipes items={featuredList} base={base} />
 
   <!-- Latest Recipes - Enhanced with better spacing and hover states -->
-   <LatestRecipes items={latestList} base={base}/>
+  <LatestRecipes items={latestList} base={base} />
 
   <!-- Seasonal Picks - Enhanced with better visual hierarchy -->
   <SeasonalPicks items={seasonalList} base={base} />

@@ -6,7 +6,7 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 
 const current = Astro.currentLocale as Locale;
 
-const rawPath = Astro.url.pathname;                 // e.g. "/fr/recipes/..."
+const rawPath = Astro.url.pathname; // e.g. "/fr/recipes/..."
 const unscoped = rawPath.replace(new RegExp(`^/${current}(?=/|$)`), '');
 const path = unscoped || '/';
 
@@ -16,7 +16,7 @@ const items = LOCALES.map((locale) => ({
   current: locale === current,
 }));
 
-
 const currentLabel = getLocaleLabel(current);
 ---
+
 <LangMenu client:load items={items} currentLabel={currentLabel} />

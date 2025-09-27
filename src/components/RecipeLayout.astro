@@ -37,82 +37,142 @@ const timeParts = [
   data.time?.total ? `${t('recipes.total')} ${data.time.total}m` : null,
 ].filter(Boolean);
 
-const yieldText = typeof data.yield === 'number' ? 
-  t('recipes.for_people', { count: data.yield }) : 
-  data.yield;
+const yieldText =
+  typeof data.yield === 'number' ? t('recipes.for_people', { count: data.yield }) : data.yield;
 
-const difficultyText = data.difficulty ? 
-  `${t('recipes.difficulty')}: ${t(data.difficulty)}` : 
-  null;
+const difficultyText = data.difficulty ? `${t('recipes.difficulty')}: ${t(data.difficulty)}` : null;
 ---
 
-<BaseLayout 
-  title={data.title} 
-  description={data.summary || data.tags?.join(', ')}
-  image={coverSrc}
->
+<BaseLayout title={data.title} description={data.summary || data.tags?.join(', ')} image={coverSrc}>
   <section class="mx-auto max-w-6xl px-5">
     <article itemscope itemtype="https://schema.org/Recipe">
       <!-- Recipe Header -->
-      {coverSrc && (
-        <section class="mb-8">
-          <!-- Mobile layout -->
-          <div class="space-y-4 md:hidden">
-            <header>
-              <h1 
-                class="scroll-m-20 text-balance text-center text-4xl font-extrabold tracking-tight"
-                itemprop="name"
-              >
-                {data.title}
-              </h1>
-            </header>
+      {
+        coverSrc && (
+          <section class="mb-8">
+            {/* Mobile layout */}
+            <div class="space-y-4 md:hidden">
+              <header>
+                <h1
+                  class="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance"
+                  itemprop="name"
+                >
+                  {data.title}
+                </h1>
+              </header>
 
-            <div class="grid grid-cols-[1fr_45%] items-stretch gap-4">
-              <!-- Left: info + tags -->
-              <div class="text-muted-foreground self-center text-sm space-y-3">
-                <div class="space-y-1">
-                  {yieldText && (
-                    <p itemprop="recipeYield">{yieldText}</p>
-                  )}
-                  {difficultyText && <p>{difficultyText}</p>}
-                  {timeParts.length > 0 && (
-                    <div>
-                      {data.time?.total && (
-                        <meta itemprop="totalTime" content={`PT${data.time.total}M`} />
-                      )}
-                      {data.time?.prep && (
-                        <meta itemprop="prepTime" content={`PT${data.time.prep}M`} />
-                      )}
-                      {data.time?.cook && (
-                        <meta itemprop="cookTime" content={`PT${data.time.cook}M`} />
-                      )}
-                      <p>{timeParts.join(' • ')}</p>
+              <div class="grid grid-cols-[1fr_45%] items-stretch gap-4">
+                {/* Left: info + tags */}
+                <div class="text-muted-foreground space-y-3 self-center text-sm">
+                  <div class="space-y-1">
+                    {yieldText && <p itemprop="recipeYield">{yieldText}</p>}
+                    {difficultyText && <p>{difficultyText}</p>}
+                    {timeParts.length > 0 && (
+                      <div>
+                        {data.time?.total && (
+                          <meta itemprop="totalTime" content={`PT${data.time.total}M`} />
+                        )}
+                        {data.time?.prep && (
+                          <meta itemprop="prepTime" content={`PT${data.time.prep}M`} />
+                        )}
+                        {data.time?.cook && (
+                          <meta itemprop="cookTime" content={`PT${data.time.cook}M`} />
+                        )}
+                        <p>{timeParts.join(' • ')}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {data.tags?.length && (
+                    <div class="flex flex-wrap gap-2">
+                      <span class="sr-only">{t('tags')}</span>
+                      {data.tags.map((tag: string) => (
+                        <a
+                          href={`${base}tags/${slugify(tag)}`}
+                          class="inline-block"
+                          title={t('view_tag_recipes', { tag })}
+                          rel="tag"
+                        >
+                          <Badge variant="secondary" className="capitalize">
+                            <span itemprop="recipeCategory">{tag}</span>
+                          </Badge>
+                        </a>
+                      ))}
                     </div>
                   )}
                 </div>
 
-                {data.tags?.length && (
-                  <div class="flex flex-wrap gap-2">
-                    <span class="sr-only">{t('tags')}</span>
-                    {data.tags.map((tag: string) => (
-                      <a
-                        href={`${base}tags/${slugify(tag)}`}
-                        class="inline-block"
-                        title={t('view_tag_recipes', { tag })}
-                        rel="tag"
-                      >
-                        <Badge variant="secondary" className="capitalize">
-                          <span itemprop="recipeCategory">{tag}</span>
-                        </Badge>
-                      </a>
-                    ))}
+                {/* Right: image */}
+                <figure class="h-full self-stretch">
+                  <div class="bg-muted relative aspect-auto h-full overflow-hidden rounded-xl shadow">
+                    <img
+                      src={coverSrc}
+                      alt={data.images?.[0]?.alt || data.title}
+                      class="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
+                      itemprop="image"
+                    />
                   </div>
-                )}
+                </figure>
               </div>
+            </div>
 
-              <!-- Right: image -->
-              <figure class="h-full self-stretch">
-                <div class="relative aspect-auto h-full overflow-hidden rounded-xl bg-muted shadow">
+            {/* Desktop layout */}
+            <div class="hidden md:grid md:grid-cols-2 md:items-stretch md:gap-8">
+              {/* Text Column */}
+              <header class={`space-y-6 self-center ${imageOnRight ? 'md:order-1' : 'md:order-2'}`}>
+                <h1
+                  class="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance"
+                  itemprop="name"
+                >
+                  {data.title}
+                </h1>
+
+                <div class="space-y-4">
+                  {data.tags?.length && (
+                    <div class="flex flex-wrap justify-center gap-2">
+                      <span class="sr-only">{t('tags')}</span>
+                      {data.tags.map((tag: string) => (
+                        <a
+                          href={`${base}tags/${slugify(tag)}`}
+                          class="inline-block"
+                          title={t('view_tag_recipes', { tag })}
+                          rel="tag"
+                        >
+                          <Badge variant="secondary" className="capitalize">
+                            <span itemprop="recipeCategory">{tag}</span>
+                          </Badge>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  <div class="flex flex-col gap-2 text-center text-sm font-medium">
+                    {yieldText && <p itemprop="recipeYield">{yieldText}</p>}
+                    {difficultyText && <p>{difficultyText}</p>}
+                    {timeParts.length > 0 && (
+                      <div>
+                        {data.time?.total && (
+                          <meta itemprop="totalTime" content={`PT${data.time.total}M`} />
+                        )}
+                        {data.time?.prep && (
+                          <meta itemprop="prepTime" content={`PT${data.time.prep}M`} />
+                        )}
+                        {data.time?.cook && (
+                          <meta itemprop="cookTime" content={`PT${data.time.cook}M`} />
+                        )}
+                        <p>{timeParts.join(' • ')}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </header>
+
+              {/* Image Column */}
+              <figure
+                class={`mx-auto w-full ${imageOnRight ? 'md:order-2' : 'md:order-1'} self-stretch`}
+              >
+                <div class="bg-muted relative aspect-[3/4] overflow-hidden rounded-2xl shadow md:aspect-auto md:h-full">
                   <img
                     src={coverSrc}
                     alt={data.images?.[0]?.alt || data.title}
@@ -123,76 +183,9 @@ const difficultyText = data.difficulty ?
                 </div>
               </figure>
             </div>
-          </div>
-
-          <!-- Desktop layout -->
-          <div class="hidden md:grid md:grid-cols-2 md:items-stretch md:gap-8">
-            <!-- Text Column -->
-            <header class={`space-y-6 self-center ${imageOnRight ? 'md:order-1' : 'md:order-2'}`}>
-              <h1 
-                class="scroll-m-20 text-balance text-center text-4xl font-extrabold tracking-tight"
-                itemprop="name"
-              >
-                {data.title}
-              </h1>
-
-              <div class="space-y-4">
-                {data.tags?.length && (
-                  <div class="flex flex-wrap gap-2 justify-center">
-                    <span class="sr-only">{t('tags')}</span>
-                    {data.tags.map((tag: string) => (
-                      <a
-                        href={`${base}tags/${slugify(tag)}`}
-                        class="inline-block"
-                        title={t('view_tag_recipes', { tag })}
-                        rel="tag"
-                      >
-                        <Badge variant="secondary" className="capitalize">
-                          <span itemprop="recipeCategory">{tag}</span>
-                        </Badge>
-                      </a>
-                    ))}
-                  </div>
-                )}
-
-                <div class="flex flex-col gap-2 text-sm font-medium text-center">
-                  {yieldText && (
-                    <p itemprop="recipeYield">{yieldText}</p>
-                  )}
-                  {difficultyText && <p>{difficultyText}</p>}
-                  {timeParts.length > 0 && (
-                    <div>
-                      {data.time?.total && (
-                        <meta itemprop="totalTime" content={`PT${data.time.total}M`} />
-                      )}
-                      {data.time?.prep && (
-                        <meta itemprop="prepTime" content={`PT${data.time.prep}M`} />
-                      )}
-                      {data.time?.cook && (
-                        <meta itemprop="cookTime" content={`PT${data.time.cook}M`} />
-                      )}
-                      <p>{timeParts.join(' • ')}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </header>
-
-            <!-- Image Column -->
-            <figure class={`mx-auto w-full ${imageOnRight ? 'md:order-2' : 'md:order-1'} self-stretch`}>
-              <div class="relative aspect-[3/4] overflow-hidden rounded-2xl bg-muted shadow md:aspect-auto md:h-full">
-                <img
-                  src={coverSrc}
-                  alt={data.images?.[0]?.alt || data.title}
-                  class="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  itemprop="image"
-                />
-              </div>
-            </figure>
-          </div>
-        </section>
-      )}
+          </section>
+        )
+      }
 
       <!-- Recipe Sections -->
       <RecipeSections

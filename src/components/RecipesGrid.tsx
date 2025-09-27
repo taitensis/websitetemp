@@ -42,15 +42,15 @@ export default function RecipesGrid({
       {items.map((item) => {
         const href = item.slug ? join(localePrefix, `/${item.slug}`) : localePrefix || '/';
         const imgSrc = item.image
-          ? item.image.startsWith('/') ? join(withBase(''), item.image) : item.image
+          ? item.image.startsWith('/')
+            ? join(withBase(''), item.image)
+            : item.image
           : null;
 
         return (
           <Card
             key={item.slug}
-            className="group overflow-hidden border border-border/60 bg-card/60
-                       px-3 py-3 shadow-sm transition-colors transition-shadow duration-200
-                       hover:border-border hover:bg-card hover:shadow-md"
+            className="group border-border/60 bg-card/60 hover:border-border hover:bg-card overflow-hidden border px-3 py-3 shadow-sm transition-colors transition-shadow duration-200 hover:shadow-md"
           >
             {imgSrc && (
               <a href={href} className="block">
@@ -67,7 +67,7 @@ export default function RecipesGrid({
 
             <CardContent className="space-y-3 p-4">
               <a href={href} className="block hover:no-underline">
-                <h3 className="line-clamp-2 font-semibold leading-tight hover:text-primary transition-colors">
+                <h3 className="hover:text-primary line-clamp-2 leading-tight font-semibold transition-colors">
                   {item.title}
                 </h3>
               </a>
