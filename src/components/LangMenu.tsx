@@ -1,16 +1,12 @@
 import * as React from 'react';
 import { Check, Languages } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { buttonVariants } from '@/components/ui/button';
 
 type Item = { label: string; url: string; current: boolean };
 
