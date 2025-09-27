@@ -4,8 +4,8 @@ import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://taitensis.github.io/nourriture-quotidienne',
-  base: '/nourriture-quotidienne/',
+  site: 'https://taitensis.github.io/websitetemp',
+  base: '/websitetemp/',
 
   integrations: [
     react(),
