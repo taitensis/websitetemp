@@ -6,15 +6,12 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { buttonVariants } from '@/components/ui/button';
 
 type Item = { label: string; url: string; current: boolean };
 
-export default function LangMenu({ items, currentLabel }: { items: Item[]; currentLabel: string }) {
+export default function LangMenu({ items }: { items: Item[] }) {
   // Navigate while keeping ?query and #hash
   const go = React.useCallback((href: string) => {
     const target = new URL(href, document.baseURI);

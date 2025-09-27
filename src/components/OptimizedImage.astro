@@ -12,12 +12,12 @@ export interface Props {
   loading?: 'lazy' | 'eager';
   class?: string;
   sizes?: string;
-  densities?: number[];
+  densities?: number[]; // kept for API compat, unused below
   widths?: number[];
 }
 
 const {
-  src,
+  src: srcProp,
   alt,
   width,
   height,
@@ -29,51 +29,73 @@ const {
   densities = [1, 2],
   widths = [320, 640, 960, 1280, 1920],
   ...rest
-} = Astro.props;
+} = Astro.props as Props;
 
-// Handle both local assets and external URLs
-const isExternalUrl = typeof src === 'string' && (src.startsWith('http') || src.startsWith('//'));
+// ---- helpers ---------------------------------------------------------------
 
-let optimizedImage;
-let srcSet;
+const isExternalUrl =
+  typeof srcProp === 'string' &&
+  (srcProp.startsWith('http://') || srcProp.startsWith('https://') || srcProp.startsWith('//'));
 
-if (!isExternalUrl && typeof src !== 'string') {
-  // For local images, use Astro's image optimization
+const getSrcFrom = (v: string | ImageMetadata) =>
+  typeof v === 'string' ? v : v.src;
+
+type SimpleImage = { src: string; width?: number; height?: number };
+
+// getImage() shape guard (Astro returns { src, attributes: {width,height,...} })
+type GetImageOutput = Awaited<ReturnType<typeof getImage>>;
+const hasAttributes = (
+  v: unknown
+): v is { src: string; attributes?: { width?: number; height?: number } } =>
+  !!v && typeof v === 'object' && 'src' in v;
+
+// ----------------------------------------------------------------------------
+
+let optimizedImage: SimpleImage = { src: getSrcFrom(srcProp) };
+let srcSet: string | undefined;
+
+if (!isExternalUrl && typeof srcProp !== 'string') {
+  // Local asset -> use Astro optimizer
   try {
-    optimizedImage = await getImage({
-      src,
+    const img: GetImageOutput = await getImage({
+      src: srcProp,
       width,
       height,
       quality,
       format,
     });
 
-    // Generate srcset for responsive images
+    if (hasAttributes(img)) {
+      optimizedImage = {
+        src: img.src,
+        width: img.attributes?.width ?? width,
+        height: img.attributes?.height ?? height,
+      };
+    } else {
+      // Fallback mapping if the type shape changes
+      optimizedImage = { src: (img as any).src, width, height };
+    }
+
     if (widths.length > 0) {
       const srcSetImages = await Promise.all(
         widths.map((w) =>
-          getImage({
-            src,
-            width: w,
-            quality,
-            format,
-          })
+          getImage({ src: srcProp, width: w, quality, format })
         )
       );
-      srcSet = srcSetImages.map((img, i) => `${img.src} ${widths[i]}w`).join(', ');
+      srcSet = srcSetImages
+        .map((itm, i) => {
+          const url = (itm as any).src as string;
+          return `${url} ${widths[i]}w`;
+        })
+        .join(', ');
     }
   } catch (error) {
     console.error('Error optimizing image:', error);
-    // Fallback to original src
-    optimizedImage = { src: typeof src === 'string' ? src : src.src };
+    optimizedImage = { src: getSrcFrom(srcProp), width, height };
   }
 } else {
-  // For external URLs, use as-is
-  optimizedImage = {
-    src: typeof src === 'string' ? src : src.src,
-    width,
-    height,
-  };
+  // External URL or string path -> use as-is
+  optimizedImage = { src: getSrcFrom(srcProp), width, height };
 }
 ---
 
@@ -90,15 +112,12 @@ if (!isExternalUrl && typeof src !== 'string') {
   {...rest}
 />
 
-<!-- Preload critical images -->
-{
-  loading === 'eager' && (
-    <link
-      rel="preload"
-      as="image"
-      href={optimizedImage.src}
-      imagesizes={sizes}
-      imagesrcset={srcSet}
-    />
-  )
-}
+{loading === 'eager' && (
+  <link
+    rel="preload"
+    as="image"
+    href={optimizedImage.src}
+    imagesizes={sizes}
+    imagesrcset={srcSet}
+  />
+)}
