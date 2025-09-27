@@ -31,7 +31,6 @@ const localeBase = join(base, localePrefix);
       {
         items.map((r) => (
           <a
-            key={r.slug}
             href={join(localeBase, `recipes/${r.slug}/`)}
             class="group block hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 motion-reduce:transition-none motion-reduce:transform-none hover:-translate-y-0.5"
           >

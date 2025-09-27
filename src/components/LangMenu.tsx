@@ -6,12 +6,15 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { buttonVariants } from '@/components/ui/button';
 
 type Item = { label: string; url: string; current: boolean };
 
-export default function LangMenu({ items }: { items: Item[] }) {
+export default function LangMenu({ items, currentLabel }: { items: Item[]; currentLabel: string }) {
   // Navigate while keeping ?query and #hash
   const go = React.useCallback((href: string) => {
     const target = new URL(href, document.baseURI);
@@ -22,11 +25,13 @@ export default function LangMenu({ items }: { items: Item[] }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Change language" className="rounded-full">
-          <Languages className="h-5 w-5" aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+       className="hover:text-primary hover:bg-primary/3 rounded-full bg-transparent rounded-full inline-flex h-10 w-10 items-center justify-center
+                  text-foreground transition-colors"
+       aria-label="Change language"
+     >
+       <Languages className="h-5 w-5" aria-hidden="true" />
+     </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" className="">
         <DropdownMenuGroup>

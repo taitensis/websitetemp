@@ -34,7 +34,7 @@ export default function MobileMenu({
 
   return (
     <div ref={wrapRef} className="relative flex items-center gap-2 md:hidden">
-      <LangMenu items={langItems} currentLabel={currentLabel} />
+      <LangMenu items={langItems} />
       <ThemeToggle />
 
       <button

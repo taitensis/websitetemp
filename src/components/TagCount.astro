@@ -30,7 +30,6 @@ const localeBase = join(base, localePrefix);
     <div class="flex flex-wrap mt-md gap-sm">
       {items.map(([t, c]) => (
         <a
-          key={t}
           href={`${join(localeBase, "recipes")}?tag=${encodeURIComponent(t)}`}
           class="focus-visible:outline-primary inline-block transition-transform duration-200 hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-95"
         >

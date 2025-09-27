@@ -4,6 +4,9 @@ import mdx from "@astrojs/mdx";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  site: "https://taitensis.github.io/nourriture-quotidienne",
+  base: "/nourriture-quotidienne/",
+
   integrations: [
     react(),
     mdx({
@@ -11,6 +14,12 @@ export default defineConfig({
       shikiConfig: { theme: "github-dark" },
     }),
   ],
+  i18n: {
+    locales: ["en", "fr", "es", "nl"],
+    defaultLocale: "en",
+    routing: { prefixDefaultLocale: false, redirectToDefaultLocale: false },
+    fallback: { fr: "en", es: "en", nl: "en" },
+  },
   vite: {
     plugins: [tailwindcss()],
     ssr: { noExternal: ["@radix-ui/*"] },
