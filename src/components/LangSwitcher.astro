@@ -13,7 +13,6 @@ console.log('🔍 unscoped:', unscoped);
 const path = unscoped || '/';
 console.log('🔍 final path:', path);
 
-
 // const items = LOCALES.map((locale) => ({
 //   label: getLocaleLabel(locale),
 //   url: getRelativeLocaleUrl(locale, path),
@@ -28,7 +27,10 @@ const items = LOCALES.map((locale) => ({
   current: locale === current,
 }));
 
-console.log('🔍 generated URLs:', items.map(item => ({ locale: item.label, url: item.url })));
+console.log(
+  '🔍 generated URLs:',
+  items.map((item) => ({ locale: item.label, url: item.url }))
+);
 
 const currentLabel = getLocaleLabel(current);
 console.log('🔍 currentLabel:', currentLabel);
