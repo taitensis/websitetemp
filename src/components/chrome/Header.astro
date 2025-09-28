@@ -9,56 +9,34 @@ import { LOCALES, getLocaleLabel } from '@/i18n/ui';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 
 let pagePath = '/';
-const pathname = Astro.url.pathname;
-console.log('Pathname', pathname);
 
-const withoutBase = pathname.replace('/nourriture-quotidienne', '');
-console.log('withoutBase', withoutBase);
+const pathname = Astro.url.pathname;
+
+const withoutBase = pathname.replace('/websitetemp', '');
 
 const localePattern = new RegExp(`^/(${LOCALES.join('|')})/?`);
-console.log('localePattern', localePattern);
+
 const withoutLocale = withoutBase.replace(localePattern, '');
-console.log('withoutLocale', withoutLocale);
 
 pagePath = withoutLocale.startsWith('/') ? withoutLocale : `/${withoutLocale}`;
-console.log('pagePath', pagePath);
 if (pagePath === '/') pagePath = '/'; // Ensure homepage is just '/'
-console.log('pagePath', pagePath);
-
-console.log('Extracted page path:', pagePath);
 
 const locale = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
 
-console.log('Full URL:', Astro.url.href);
-console.log('Pathname:', Astro.url.pathname);
-console.log('Current locale:', locale);
-console.log('Available locales:', LOCALES);
-
 const currentPath = Astro.url.pathname.replace(/^\/[^\/]*/, '') || '/';
-console.log('Current path:', currentPath);
 
 const urls = LOCALES.map((l) => {
   const url = getRelativeLocaleUrl(l, pagePath);
-  console.log(`URL for ${l}:`, url);
   return url;
 });
 
 const currentUrl = getRelativeLocaleUrl(locale, currentPath);
-console.log('Current URL:', currentUrl);
-
-/* const urls = LOCALES.map((l) => {
-  const url = getRelativeLocaleUrl(l, currentPath);
-  console.log(`URL for ${l}:`, url);
-  return url;
-}); */
 
 const langItems = LOCALES.map((l, i) => ({
   label: getLocaleLabel(l),
   url: urls[i],
   current: urls[i] === currentUrl,
 }));
-
-console.log('Fixed Lang items:', langItems);
 
 const nav = [
   { label: t('nav.home'), url: getRelativeLocaleUrl(locale, '/') },

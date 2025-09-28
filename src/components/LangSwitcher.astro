@@ -7,11 +7,7 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 const current = Astro.currentLocale as Locale;
 
 const rawPath = Astro.url.pathname; // e.g. "/fr/recipes/..."
-const basePath = import.meta.env.BASE_URL;
-const withoutBase = rawPath.startsWith(basePath) ? rawPath.slice(basePath.length) : rawPath;
-
-const unscoped = withoutBase.replace(new RegExp(`^${current}(?=/|$)`), '');
-//const unscoped = rawPath.replace(new RegExp(`^/${current}(?=/|$)`), '');
+const unscoped = rawPath.replace(new RegExp(`^/${current}(?=/|$)`), '');
 const path = unscoped || '/';
 
 const items = LOCALES.map((locale) => ({
