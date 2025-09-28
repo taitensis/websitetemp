@@ -4,7 +4,7 @@ import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://taitensis.github.io/websitetemp',
+  site: 'https://taitensis.github.io',
   base: '/websitetemp/',
 
   integrations: [
