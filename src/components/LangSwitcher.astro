@@ -7,19 +7,12 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 const current = Astro.currentLocale as Locale;
 
 const rawPath = Astro.url.pathname; // e.g. "/fr/recipes/..."
-console.log('🔍 rawPath:', rawPath);
-const unscoped = rawPath.replace(new RegExp(`^/${current}(?=/|$)`), '');
-console.log('🔍 unscoped:', unscoped);
+const basePath = import.meta.env.BASE_URL;
+const withoutBase = rawPath.startsWith(basePath) ? rawPath.slice(basePath.length) : rawPath;
+
+const unscoped = withoutBase.replace(new RegExp(`^${current}(?=/|$)`), '');
+//const unscoped = rawPath.replace(new RegExp(`^/${current}(?=/|$)`), '');
 const path = unscoped || '/';
-console.log('🔍 final path:', path);
-
-// const items = LOCALES.map((locale) => ({
-//   label: getLocaleLabel(locale),
-//   url: getRelativeLocaleUrl(locale, path),
-//   current: locale === current,
-// }));
-
-// Also log what URLs are being generated
 
 const items = LOCALES.map((locale) => ({
   label: getLocaleLabel(locale),
@@ -27,32 +20,7 @@ const items = LOCALES.map((locale) => ({
   current: locale === current,
 }));
 
-console.log(
-  '🔍 generated URLs:',
-  items.map((item) => ({ locale: item.label, url: item.url }))
-);
-
 const currentLabel = getLocaleLabel(current);
-console.log('🔍 currentLabel:', currentLabel);
 ---
-
-<!-- Temporary debug info -->
-<div style="background: #ffeb3b; padding: 10px; font-family: monospace; border: 2px solid red;">
-  <strong>DEBUG INFO:</strong><br />
-  current: {current}<br />
-  rawPath: {rawPath}<br />
-  unscoped: {unscoped}<br />
-  path: {path}<br />
-  <br />
-  Generated URLs:<br />
-  {
-    items.map((item) => (
-      <div>
-        • {item.label}: {item.url}
-      </div>
-    ))
-  }
-  currentLabel: {currentLabel}<br />
-</div>
 
 <LangMenu client:load items={items} currentLabel={currentLabel} />
