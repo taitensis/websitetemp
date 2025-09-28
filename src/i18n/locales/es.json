@@ -27,6 +27,7 @@
   },
   "recipes": {
     "title": "Recetas",
+    "browse_all_recipes": "Ver todas las recetas",
     "all_recipes": "Todas las Recetas",
     "latest_recipes": "Últimas Recetas",
     "featured": "Destacado",
@@ -107,7 +108,9 @@
     "network_error": "Error de Red",
     "network_error_description": "Por favor verifica tu conexión a internet y vuelve a intentar.",
     "generic_error": "Algo salió mal",
-    "generic_error_description": "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde."
+    "generic_error_description": "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde.",
+    "go_home": "Ir al inicio",
+    "browse_recipes": "Explorar recetas"
   },
   "ui": {
     "close": "Cerrar",

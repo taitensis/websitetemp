@@ -1,10 +1,11 @@
 ---
 // src/pages/recipes/index.astro
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import hero from '@/assets/hero.png';
+import hero from '@/assets/hero.webp';
 import RecipesIndex from '@/components/RecipesIndex';
 import { getCollection } from 'astro:content';
 import { t, setLocale, DEFAULT_LOCALE, type Locale } from '@/i18n/ui';
+import { Typography } from '@/components/ui/typography';
 
 const locale = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
 setLocale(locale); // Set the global locale context
@@ -36,14 +37,14 @@ const items = filtered.map((r) => ({
 
 <BaseLayout
   title={t('recipes.all_recipes')}
-  description={t('browse_all_recipes')}
+  description={t('recipes.browse_all_recipes')}
   bgUrl={hero.src}
-  mainClass="px-0 py-0 md:py-8"
+  mainClass="px-0 py-0 md:py-xl"
 >
-  <section class="mx-auto max-w-6xl px-5">
-    <h1 class="mb-10 scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+  <section class="mt-lg mx-auto w-full max-w-6xl">
+    <Typography variant="h1" className="pb-lg">
       {t('recipes.all_recipes')}
-    </h1>
+    </Typography>
 
     <!-- Client component gets ONLY locale-filtered items -->
     <RecipesIndex client:load items={items} locale={locale} localePrefix={localePrefix} />

@@ -1,7 +1,8 @@
 // src/components/RecipesFilters.tsx
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -53,14 +54,14 @@ export default function RecipesFilters({
 }: Props) {
   return (
     <Card className="border-border gap-0">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-md">
         <CardTitle className="text-base">{t('search.filter_recipes')}</CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <CardContent className="space-y-md">
+        <div className="gap-md grid grid-cols-1 sm:grid-cols-2 lg:[grid-template-columns:minmax(0,1fr)_minmax(0,1fr)_auto]">
           {/* Search */}
-          <div className="space-y-2">
+          <div className="space-y-xs min-w-0">
             <label className="text-sm font-medium">{t('search.search')}</label>
             <Input
               value={query}
@@ -72,7 +73,7 @@ export default function RecipesFilters({
           </div>
 
           {/* Sort */}
-          <div className="space-y-2">
+          <div className="space-y-xs min-w-0">
             <label className="text-sm font-medium">{t('search.sort')}</label>
             <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
               <SelectTrigger className="w-full">
@@ -88,26 +89,39 @@ export default function RecipesFilters({
           </div>
 
           {/* Difficulty */}
-          <div className="space-y-2">
+
+          <div className="space-y-xs min-w-0">
             <label className="text-sm font-medium">{t('search.difficulty')}</label>
-            <ToggleGroup type="multiple" className="justify-start">
-              {(['easy', 'medium', 'hard'] as const).map((d) => (
-                <ToggleGroupItem
-                  key={d}
-                  value={d}
-                  aria-label={t(`difficulty.${d}`)}
-                  data-state={difficulties.has(d) ? 'on' : 'off'}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleDifficulty(d);
-                  }}
-                  type="button"
-                  className="capitalize"
-                >
-                  {t(`difficulty.${d}`)}
-                </ToggleGroupItem>
-              ))}
+
+            <ToggleGroup type="multiple" className="gap-sm justify-start">
+              {(['easy', 'medium', 'hard'] as const).map((d) => {
+                const active = difficulties.has(d);
+                return (
+                  <ToggleGroupItem
+                    key={d}
+                    value={d}
+                    data-state={active ? 'on' : 'off'}
+                    aria-pressed={active}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleDifficulty(d);
+                    }}
+                    type="button"
+                    className={cn(
+                      // Reset ToggleGroup styles and apply badge styles
+                      'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground',
+                      'data-[state=off]:bg-secondary data-[state=off]:text-secondary-foreground',
+                      'px-md h-8 cursor-pointer rounded-md text-sm capitalize select-none',
+                      'hover:bg-accent hover:text-accent-foreground',
+                      active ? '' : 'opacity-60 hover:opacity-100'
+                    )}
+                  >
+                    {t(`difficulty.${d}`)}
+                  </ToggleGroupItem>
+                );
+              })}
             </ToggleGroup>
           </div>
         </div>
@@ -116,7 +130,7 @@ export default function RecipesFilters({
 
         {/* Tags */}
         {allTags.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="gap-sm flex flex-wrap">
             {allTags.map((tag) => {
               const active = activeTags.has(tag);
               return (
@@ -142,8 +156,8 @@ export default function RecipesFilters({
 
         {(activeTags.size > 0 || difficulties.size > 0 || query) && (
           <div>
-            <Button variant="outline" size="sm" onClick={reset}>
-              {t('search.reset_filters')}
+            <Button variant="ghost" size="sm" onClick={reset}>
+              <span className="text-sm">{t('search.reset_filters')}</span>
             </Button>
           </div>
         )}

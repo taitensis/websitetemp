@@ -1,8 +1,9 @@
 // src/components/RecipesGrid.tsx
 import * as React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { RecipeItem } from '@/components/RecipesIndex';
+import { Typography } from '@/components/ui/typography';
 
 type Translate = (k: string, params?: Record<string, unknown>) => string;
 type TTag = (slug: string) => string;
@@ -31,8 +32,8 @@ export default function RecipesGrid({
 }) {
   if (items.length === 0) {
     return (
-      <Card className="border-dashed">
-        <CardContent className="p-8 text-center opacity-70">{t('search.no_results')}</CardContent>
+      <Card className="border-border gap-0">
+        <CardContent className="p-lg text-center opacity-70">{t('search.no_results')}</CardContent>
       </Card>
     );
   }
@@ -48,31 +49,27 @@ export default function RecipesGrid({
           : null;
 
         return (
-          <Card
-            key={item.slug}
-            className="group border-border/60 bg-card/60 hover:border-border hover:bg-card overflow-hidden border px-3 py-3 shadow-sm transition-colors transition-shadow duration-200 hover:shadow-md"
-          >
+          <Card key={item.slug} className="px-md py-md gap-y-lg bg-card">
             {imgSrc && (
               <a href={href} className="block">
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative m-0 aspect-[4/3] overflow-hidden p-0">
                   <img
                     src={imgSrc}
                     alt={item.title}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:brightness-105"
+                    className="m-0 aspect-[4/3] w-full object-cover p-0 transition-opacity duration-200 group-hover:opacity-95 motion-reduce:transition-none"
                     loading="lazy"
                   />
                 </div>
               </a>
             )}
 
-            <CardContent className="space-y-3 p-4">
-              <a href={href} className="block hover:no-underline">
-                <h3 className="hover:text-primary line-clamp-2 leading-tight font-semibold transition-colors">
-                  {item.title}
-                </h3>
-              </a>
-
-              <div className="flex flex-wrap gap-2">
+            <CardContent className="flex w-full justify-center p-0">
+              <Typography variant="cardTitle" className="m-0 p-0 text-center">
+                {item.title}
+              </Typography>
+            </CardContent>
+            <CardFooter>
+              <div className="gap-sm flex flex-wrap">
                 {item.tags?.slice(0, 3).map((slug) => (
                   <Badge key={String(slug)} variant="secondary">
                     {tTag(String(slug))}
@@ -85,7 +82,7 @@ export default function RecipesGrid({
                   </Badge>
                 )}
               </div>
-            </CardContent>
+            </CardFooter>
           </Card>
         );
       })}

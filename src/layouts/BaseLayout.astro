@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import hero from '@/assets/hero.webp';
 import Seo from '@/components/seo/Seo.astro';
 import Header from '@/components/chrome/Header.astro';
 import Footer from '@/components/chrome/Footer.astro';
@@ -57,8 +58,9 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).toString(
   <body class="bg-background text-foreground flex min-h-dvh flex-col antialiased">
     {!hideHeader && <Header />}
 
+    {bgUrl && <Background src={hero.src} />}
+
     <main id="main-content" class={`relative flex-1 px-4 py-3 ${mainClass}`}>
-      {bgUrl && <Background src={bgUrl} />}
       <div class="relative z-10">
         <slot />
       </div>

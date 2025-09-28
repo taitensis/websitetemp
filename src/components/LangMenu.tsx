@@ -22,7 +22,7 @@ export default function LangMenu({ items, currentLabel }: { items: Item[]; curre
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="hover:text-primary hover:bg-primary/3 text-foreground inline-flex h-10 w-10 items-center justify-center rounded-full bg-transparent transition-colors"
+        className="hover:hover:text-primary text-foreground inline-flex h-10 w-10 items-center justify-center rounded-full bg-transparent font-medium transition-colors hover:bg-transparent dark:hover:bg-transparent"
         aria-label="Change language"
       >
         <Languages className="h-5 w-5" aria-hidden="true" />

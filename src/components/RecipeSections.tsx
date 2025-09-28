@@ -1,17 +1,10 @@
 import * as React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Typography, List } from '@/components/ui/typography';
+import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 
-const paneClass = 'outline-none ml-4 max-w-3xl text-[clamp(1rem,0.4vw+0.9rem,1.125rem)]';
+const paneClass = 'outline-none lg:ml-lg px-4 sm:px-6 lg:px-0';
 
 type IngredientGroup = { title?: string; ingredients: string[] };
 type Nutrition = {
@@ -29,7 +22,7 @@ type Props = {
   ingredients?: IngredientGroup[];
   steps?: string[];
   notes?: string[];
-  nutrition?: Nutrition | null; // ← new
+  nutrition?: Nutrition | null;
 };
 
 type TabId = 'ingredients' | 'steps' | 'notes' | 'nutritional-values';
@@ -44,10 +37,8 @@ export default function RecipeSections({
   const hasNotes = notes.length > 0;
   const hasNutrition = hasNutritionValues(nutrition);
 
-  // ---------- checkbox state (persist per recipe) ----------
   const storageKey = recipeId ? `ing:${recipeId}` : null;
   const [checked, setChecked] = React.useState<Record<string, boolean>>({});
-
   React.useEffect(() => {
     if (!storageKey) return;
     try {
@@ -55,7 +46,6 @@ export default function RecipeSections({
       if (raw) setChecked(JSON.parse(raw));
     } catch {}
   }, [storageKey]);
-
   function setPersist(next: Record<string, boolean>) {
     setChecked(next);
     if (storageKey) {
@@ -70,7 +60,6 @@ export default function RecipeSections({
 
   const stepsStorageKey = recipeId ? `steps:${recipeId}` : null;
   const [stepsChecked, setStepsChecked] = React.useState<Record<number, boolean>>({});
-
   React.useEffect(() => {
     if (!stepsStorageKey) return;
     try {
@@ -78,7 +67,6 @@ export default function RecipeSections({
       if (raw) setStepsChecked(JSON.parse(raw));
     } catch {}
   }, [stepsStorageKey]);
-
   function setStepsPersist(next: Record<number, boolean>) {
     setStepsChecked(next);
     if (stepsStorageKey) {
@@ -93,9 +81,7 @@ export default function RecipeSections({
   function resetSteps() {
     setStepsPersist({});
   }
-  // ---------------------------------------------------------
 
-  // Build tabs dynamically (order matters)
   const tabs: { id: TabId; label: string }[] = [
     { id: 'ingredients', label: 'Ingredients' },
     { id: 'steps', label: 'Steps' },
@@ -103,7 +89,6 @@ export default function RecipeSections({
     ...(hasNutrition ? [{ id: 'nutritional-values' as TabId, label: 'Nutritional Values' }] : []),
   ];
 
-  // Default tab from hash (if valid), else first
   const initial: TabId = (() => {
     const h = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
     const allowed = new Set(tabs.map((t) => t.id));
@@ -112,8 +97,6 @@ export default function RecipeSections({
   })();
 
   const [value, setValue] = React.useState<TabId>(initial);
-
-  // React to manual hash changes
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const onHashChange = () => {
@@ -124,139 +107,132 @@ export default function RecipeSections({
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, [tabs]);
-
-  // Keep the URL hash in sync with the active tab
   React.useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash !== `#${value}`) {
       history.replaceState(null, '', `#${value}`);
     }
   }, [value]);
 
-  // Dynamic grid cols (2..4)
   const gridCols =
     tabs.length === 2 ? 'grid-cols-2' : tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
 
   return (
     <>
-      {/* Screen: tabs UI */}
       <div className="print:hidden">
         <Tabs value={value} onValueChange={(v) => setValue(v as TabId)} className="space-y-4">
           <TabsList
-            className={`grid h-auto w-full ${gridCols} items-start gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800`}
+            className={`grid w-full ${gridCols} bg-primary/10 gap-sm h-auto rounded-lg p-1`}
           >
             {tabs.map((t) => (
               <TabsTrigger
                 key={t.id}
                 id={`tab-${t.id}`}
                 value={t.id}
-                className="w-full rounded-lg px-3 py-2 text-center text-[clamp(0.75rem,0.25vw+0.7rem,0.875rem)] leading-snug font-semibold break-words whitespace-normal data-[state=active]:bg-white data-[state=active]:shadow-sm sm:text-[clamp(0.875rem,0.3vw+0.8rem,1rem)] dark:data-[state=active]:bg-slate-950"
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground w-full min-w-0 justify-center rounded-md text-center break-words whitespace-normal"
               >
                 {t.label}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* Ingredients (checkbox list) */}
           <TabsContent value="ingredients" aria-labelledby="tab-ingredients" className={paneClass}>
-            <h2 className="sr-only print:not-sr-only print:mb-3">Ingredients</h2>
-
-            <div className="space-y-6">
-              {ingredients.map((g, gi) => (
-                <div key={gi}>
-                  {g.title && <h3 className="mb-2 font-medium">{g.title}</h3>}
-
-                  {/* Checkbox list instead of bullets */}
-                  <ul className="space-y-3">
-                    {g.ingredients.map((text, idx) => {
-                      const id = `${recipeId || 'recipe'}:${gi}:${idx}`;
-                      const isChecked = !!checked[id];
-                      return (
-                        <li key={id} className="flex items-center gap-3">
-                          <Checkbox
-                            id={id}
-                            checked={isChecked}
-                            onCheckedChange={(v) => toggle(id, v)}
-                            className="mt-0.5"
-                          />
-                          <label
-                            htmlFor={id}
-                            className={`select-none ${
-                              isChecked ? 'text-slate-400 line-through' : ''
-                            }`}
-                          >
-                            {text}
-                          </label>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-
+            <h2 className="print:mb-sm sr-only print:not-sr-only">Ingredients</h2>
+            <div className="space-y-md">
+              <List
+                items={ingredients}
+                className="my-0 list-none space-y-6 [&>li]:mt-0"
+                renderItem={(g, gi) => (
+                  <>
+                    {g.title && <h3 className="mb-xs font-medium">{g.title}</h3>}
+                    <List
+                      items={g.ingredients}
+                      className="space-y-md my-0 ml-0 list-none [&>li]:mt-0"
+                      renderItem={(text, idx) => {
+                        const id = `${recipeId || 'recipe'}:${gi}:${idx}`;
+                        const isChecked = !!checked[id];
+                        return (
+                          <div className="gap-md flex items-center">
+                            <Checkbox
+                              id={id}
+                              checked={isChecked}
+                              onCheckedChange={(v) => toggle(id, v)}
+                              className=""
+                            />
+                            <label
+                              htmlFor={id}
+                              className={cn(
+                                'select-none',
+                                isChecked && 'text-primary/75 line-through'
+                              )}
+                            >
+                              {text}
+                            </label>
+                          </div>
+                        );
+                      }}
+                    />
+                  </>
+                )}
+              />
               {ingredients.length === 0 && <Empty>Missing ingredients</Empty>}
             </div>
           </TabsContent>
 
-          {/* Steps */}
           <TabsContent value="steps" aria-labelledby="tab-steps" className={paneClass}>
-            <h2 className="sr-only print:not-sr-only print:mb-3">Steps</h2>
+            <h2 className="print:mb-sm sr-only print:not-sr-only">Steps</h2>
             {steps.length ? (
-              <ol className="space-y-3">
-                {steps.map((s, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <div className="text-muted-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 font-semibold dark:bg-slate-800">
+              <List
+                as="ol"
+                items={steps}
+                className="space-y-md my-0 list-none [&>li]:mt-0"
+                renderItem={(s, i) => (
+                  <div className="gap-md flex items-center">
+                    <div className="text-primary bg-primary/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-semibold">
                       {i + 1}
                     </div>
-
                     <p className="min-w-0 flex-1 leading-relaxed break-words">{s}</p>
-                  </li>
-                ))}
-              </ol>
+                  </div>
+                )}
+              />
             ) : (
               <Empty>Missing steps</Empty>
             )}
           </TabsContent>
 
-          {/* Notes */}
           {hasNotes && (
             <TabsContent value="notes" aria-labelledby="tab-notes" className={paneClass}>
-              <h2 className="sr-only marker:text-slate-400 print:not-sr-only print:mb-3">Notes</h2>
-              <ul className="list-disc space-y-3 pl-6">
-                {notes.map((n, i) => (
-                  <li
-                    key={i}
-                    className="leading-relaxed break-words text-slate-600 dark:text-slate-300"
-                  >
-                    {n}
-                  </li>
-                ))}
-              </ul>
+              <h2 className="marker:text-foreground print:mb-md sr-only print:not-sr-only">
+                Notes
+              </h2>
+              <List
+                items={notes}
+                className="space-y-md pl-xl marker:text-primary/90 my-0 ml-0 list-disc [&>li]:mt-0"
+                renderItem={(n) => <span className="leading-relaxed break-words">{n}</span>}
+              />
             </TabsContent>
           )}
 
-          {/* Nutrition */}
           {hasNutrition && (
             <TabsContent
               value="nutritional-values"
               aria-labelledby="tab-nutritional-values"
-              className={paneClass}
+              className="mx-auto"
             >
-              <h2 className="sr-only print:not-sr-only print:mb-3">Nutritional Values</h2>
+              <h2 className="print:mb-md sr-only print:not-sr-only">Nutritional Values</h2>
               <NutritionTable nutrition={nutrition!} />
             </TabsContent>
           )}
         </Tabs>
       </div>
 
-      {/* Print: stacked fallback (always visible on paper) */}
       <div className="hidden space-y-8 print:block">
         <div>
           <SectionHeading>Ingredients</SectionHeading>
           {ingredients.length ? (
             ingredients.map((g, i) => (
-              <div key={i} className="mb-4">
+              <div key={i} className="mb-md">
                 {g.title && <h3 className="mb-2 font-medium">{g.title}</h3>}
-                <ul className="list-disc space-y-1 pl-6">
+                <ul className="space-y-sm pl-lg list-disc">
                   {g.ingredients.map((it, idx) => (
                     <li key={idx} className="items-center">
                       {it}
@@ -273,7 +249,7 @@ export default function RecipeSections({
         <div>
           <SectionHeading>Steps</SectionHeading>
           {steps.length ? (
-            <ol className="list-decimal space-y-2 pl-6">
+            <ol className="space-y-md pl-lg list-decimal">
               {steps.map((s, i) => (
                 <li key={i} className="items-center">
                   {s}
@@ -288,7 +264,7 @@ export default function RecipeSections({
         {hasNotes && (
           <div>
             <SectionHeading>Notes</SectionHeading>
-            <ul className="list-disc space-y-1 pl-6">
+            <ul className="space-y-md pl-lg list-disc">
               {notes.map((n, i) => (
                 <li key={i} className="items-center">
                   {n}
@@ -309,8 +285,6 @@ export default function RecipeSections({
   );
 }
 
-/* ---------- helpers & subcomponents ---------- */
-
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return <h2 className="mb-3 text-[clamp(1.5rem,1.8vw+.8rem,2rem)] font-semibold">{children}</h2>;
 }
@@ -325,38 +299,79 @@ function hasNutritionValues(n?: Nutrition | null) {
 }
 
 function NutritionTable({ nutrition }: { nutrition: Nutrition }) {
-  const rows: Array<{ label: string; value?: number; suffix?: string }> = [
-    { label: 'Calories', value: nutrition.calories },
-    { label: 'Protein', value: nutrition.protein_g, suffix: ' g' },
-    { label: 'Carbs', value: nutrition.carbs_g, suffix: ' g' },
-    { label: 'Fat', value: nutrition.fat_g, suffix: ' g' },
-    { label: 'Fiber', value: nutrition.fiber_g, suffix: ' g' },
-    { label: 'Sugar', value: nutrition.sugar_g, suffix: ' g' },
-    { label: 'Sodium', value: nutrition.sodium_mg, suffix: ' mg' },
-  ].filter((r) => typeof r.value === 'number' && !Number.isNaN(r.value));
+  const { calories, protein_g, carbs_g, fat_g, fiber_g, sugar_g, sodium_mg } = nutrition ?? {};
+  const energyKJ =
+    typeof calories === 'number' && !Number.isNaN(calories)
+      ? Math.round(calories * 4.184)
+      : undefined;
+  const salt_g =
+    typeof sodium_mg === 'number' && !Number.isNaN(sodium_mg)
+      ? +((sodium_mg * 2.5) / 1000).toFixed(2)
+      : undefined;
+
+  type Row = { label: string; value?: string; isGroup?: boolean; isChild?: boolean };
+  const rows: Row[] = [
+    energyKJ != null && calories != null
+      ? { label: 'Energy', value: `${energyKJ} kJ / ${calories} kcal`, isGroup: true }
+      : undefined,
+    fat_g != null ? { label: 'Fat', value: `${fat_g} g`, isGroup: true } : undefined,
+    carbs_g != null ? { label: 'Carbohydrate', value: `${carbs_g} g`, isGroup: true } : undefined,
+    sugar_g != null
+      ? { label: '— of which sugars', value: `${sugar_g} g`, isChild: true }
+      : undefined,
+    fiber_g != null ? { label: 'Fibre', value: `${fiber_g} g` } : undefined,
+    protein_g != null ? { label: 'Protein', value: `${protein_g} g` } : undefined,
+    salt_g != null ? { label: 'Salt', value: `${salt_g} g` } : undefined,
+  ].filter(Boolean) as Row[];
 
   if (rows.length === 0) return <Empty>No nutrition provided</Empty>;
 
   return (
-    <Table className="mx-auto max-w-3xl text-[clamp(0.875rem,0.3vw+0.8rem,1rem)]">
-      <TableCaption>Per serving</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="font-bold">Nutrient</TableHead>
-          <TableHead className="text-right font-bold">Amount</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((r) => (
-          <TableRow key={r.label}>
-            <TableCell>{r.label}</TableCell>
-            <TableCell className="text-right font-medium tabular-nums">
-              {r.value}
-              {r.suffix ?? ''}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <figure>
+      <figcaption className="sr-only">Nutrition declaration (per serving)</figcaption>
+      <table className="border-border border-primary/15 table-auto border-2">
+        <thead>
+          <tr>
+            <th
+              className="border-border px-md py-sm border-primary/15 w-2/3 border-b-2 text-left font-bold"
+              scope="col"
+            >
+              Nutrition
+              <br />
+              <span className="text-muted-foreground font-normal">(per serving)</span>
+            </th>
+            <th
+              className="border-border px-md py-sm border-primary/15 w-1/3 border-b-2 text-right font-bold"
+              scope="col"
+            >
+              Amount
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const topRule =
+              i === 0 || r.isGroup ? 'border-t-2 border-primary/15 border-border' : '';
+            return (
+              <tr key={r.label} className={topRule}>
+                <th
+                  scope="row"
+                  className={cn(
+                    'px-md py-sm text-left font-medium',
+                    r.isGroup && 'font-bold',
+                    r.isChild && 'pl-xl text-muted-foreground'
+                  )}
+                >
+                  {r.label}
+                </th>
+                <td className="px-md py-sm text-right font-medium whitespace-normal tabular-nums sm:whitespace-nowrap">
+                  {r.value}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </figure>
   );
 }

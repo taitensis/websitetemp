@@ -27,16 +27,17 @@
   },
   "recipes": {
     "title": "Recettes",
-    "all_recipes": "Toutes les Recettes",
-    "latest_recipes": "Dernières Recettes",
+    "browse_all_recipes": "Voir toutes les recettes",
+    "all_recipes": "Toutes les recettes",
+    "latest_recipes": "Dernières recettes",
     "featured": "À la Une",
-    "seasonal_picks": "Sélection Saisonnière",
-    "browse_by_tag": "Parcourir par Tag",
+    "seasonal_picks": "De saison",
+    "browse_by_tag": "Parcourir par étiquette",
     "recipe_not_found": "Recette non trouvée",
     "no_recipes": "Aucune recette trouvée",
     "search_placeholder": "Rechercher des recettes...",
     "surprise_me": "Surprends-moi",
-    "random_recipe": "Recette Aléatoire",
+    "random_recipe": "Recette aléatoire",
     "ingredients": "Ingrédients",
     "instructions": "Instructions",
     "notes": "Notes",
@@ -107,7 +108,9 @@
     "network_error": "Erreur de réseau",
     "network_error_description": "Veuillez vérifier votre connexion internet et réessayer.",
     "generic_error": "Oups ! Une erreur est survenue.",
-    "generic_error_description": "Une erreur inattendue s’est produite. Veuillez réessayer plus tard."
+    "generic_error_description": "Une erreur inattendue s’est produite. Veuillez réessayer plus tard.",
+    "go_home": "Aller à l’accueil",
+    "browse_recipes": "Parcourir les recettes"
   },
   "ui": {
     "close": "Fermer",

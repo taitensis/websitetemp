@@ -27,6 +27,7 @@
   },
   "recipes": {
     "title": "Recepten",
+    "browse_all_recipes": "Alle recepten bekijken",
     "all_recipes": "Alle Recepten",
     "latest_recipes": "Nieuwste Recepten",
     "featured": "Uitgelicht",
@@ -107,7 +108,9 @@
     "network_error": "Netwerkfout",
     "network_error_description": "Controleer je internetverbinding en probeer opnieuw.",
     "generic_error": "Er is iets misgegaan",
-    "generic_error_description": "Er is een onverwachte fout opgetreden. Probeer het later opnieuw."
+    "generic_error_description": "Er is een onverwachte fout opgetreden. Probeer het later opnieuw.",
+    "go_home": "Ga naar startpagina",
+    "browse_recipes": "Recepten bekijken"
   },
   "ui": {
     "close": "Sluiten",

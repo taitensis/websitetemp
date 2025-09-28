@@ -27,6 +27,7 @@
   },
   "recipes": {
     "title": "Recipes",
+    "browse_all_recipes": "Browse all recipes",
     "all_recipes": "All Recipes",
     "latest_recipes": "Latest Recipes",
     "featured": "Featured",
@@ -107,7 +108,9 @@
     "network_error": "Network Error",
     "network_error_description": "Please check your internet connection and try again.",
     "generic_error": "Something went wrong",
-    "generic_error_description": "An unexpected error occurred. Please try again later."
+    "generic_error_description": "An unexpected error occurred. Please try again later.",
+    "go_home": "Go home",
+    "browse_recipes": "Browse recipes"
   },
   "ui": {
     "close": "Close",

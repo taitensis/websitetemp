@@ -109,7 +109,7 @@ export default function RecipesIndex({ items, locale = DEFAULT_LOCALE, localePre
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-lg">
       <RecipesFilters
         t={t}
         allTags={allTags}

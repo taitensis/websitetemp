@@ -13,39 +13,40 @@ const recipesUrl = getRelativeLocaleUrl(locale, '/recipes');
 ---
 
 <BaseLayout
-  title={t('page_not_found') || 'Page Not Found'}
-  description={t('page_not_found_description') || 'The page you are looking for does not exist.'}
+  title={t('errors.page_not_found') || 'Page Not Found'}
+  description={t('errors.page_not_found_description') ||
+    'The page you are looking for does not exist.'}
   noIndex={true}
 >
-  <section class="mx-auto max-w-4xl px-6 py-20 text-center">
-    <div class="space-y-6">
+  <section class="mt-lg mx-auto w-full max-w-6xl text-center">
+    <div class="space-y-md">
       <!-- Large 404 -->
       <div class="text-muted-foreground/20 text-9xl font-bold select-none">404</div>
 
       <!-- Heading -->
       <Typography variant="h1">
-        {t('page_not_found') || 'Page Not Found'}
+        {t('errors.page_not_found') || 'Page Not Found'}
       </Typography>
 
       <!-- Description -->
       <Typography variant="lead" className="mx-auto max-w-2xl">
         {
-          t('page_not_found_description') ||
+          t('errors.page_not_found_description') ||
             'The page you are looking for might have been moved, renamed, or does not exist.'
         }
       </Typography>
 
       <!-- Action buttons -->
-      <div class="flex flex-col justify-center gap-4 pt-6 sm:flex-row">
+      <div class="gap-md pt-md flex flex-col justify-center sm:flex-row">
         <Button asChild size="lg">
           <a href={homeUrl}>
-            {t('go_home') || 'Go Home'}
+            {t('errors.go_home') || 'Go Home'}
           </a>
         </Button>
 
         <Button asChild variant="outline" size="lg">
           <a href={recipesUrl}>
-            {t('browse_recipes') || 'Browse Recipes'}
+            {t('errors.browse_recipes') || 'Browse Recipes'}
           </a>
         </Button>
       </div>

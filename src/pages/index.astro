@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import hero from '@/assets/hero.png';
+import hero from '@/assets/hero.webp';
 import { join } from '@/lib/utils';
 import { getCollection } from 'astro:content';
 import { Button } from '@/components/ui/button';
@@ -81,7 +81,7 @@ const tagCountsList = Object.entries(
   title={t('nav.home')}
   description="Welcome to Nourriture Quotidienne, a collection of everyday recipes."
   bgUrl={hero.src}
-  mainClass="px-0 py-0 md:py-8"
+  mainClass="px-0 py-0 md:py-lg"
 >
   <!-- Hero Section - Enhanced with new spacing and transitions -->
   <section class="mt-lg mx-auto w-full max-w-6xl">
@@ -94,10 +94,10 @@ const tagCountsList = Object.entries(
 
     <!-- Enhanced Search Section -->
     <div class="">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div class="gap-4xl flex flex-col sm:flex-row sm:items-center">
         <form
           action={join(localeBase, 'recipes')}
-          class="flex flex-1 items-center gap-3"
+          class="gap-md flex flex-1 items-center"
           role="search"
           aria-label={t('a11y.search_recipes')}
         >
@@ -112,7 +112,7 @@ const tagCountsList = Object.entries(
               placeholder={t('search.search_placeholder')}
               aria-label={t('a11y.search_recipes')}
               autoComplete="on"
-              className="bg-input text-foreground placeholder:text-muted-foreground hover:bg-input-hover hover:border-border-hover focus:bg-input-focus focus:border-primary focus:ring-primary/20 focus:ring-offset-background h-12 w-full rounded-xl border-2 pr-4 pl-4 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2 focus:ring-offset-2"
+              className="bg-background"
             />
           </div>
 
@@ -127,7 +127,7 @@ const tagCountsList = Object.entries(
       </div>
 
       <!-- Enhanced Search Suggestions -->
-      <div class="mt-3 text-center">
+      <div class="mt-md text-center">
         <p
           class="text-foreground text-sm opacity-70 transition-opacity duration-200 hover:opacity-100"
         >

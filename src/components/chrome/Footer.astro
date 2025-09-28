@@ -7,14 +7,14 @@ setLocale(locale);
 const year = new Date().getFullYear();
 ---
 
-<footer class="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-t backdrop-blur">
-  <div class="mx-auto max-w-6xl px-4 py-8">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+<footer class="bg-background px-md py-sm border-border border-t backdrop-blur-sm">
+  <div class="px-md py-lg mx-auto max-w-6xl">
+    <div class="gap-md flex flex-col sm:flex-row sm:items-center sm:justify-between">
       <p class="text-muted-foreground text-sm">
         © {year} Maxime C. — {t('footer.copyright').replace('© {year} Maxime C. — ', '')}
       </p>
 
-      <div class="text-muted-foreground flex flex-wrap gap-1 text-sm">
+      <div class="text-muted-foreground gap-xs flex flex-wrap text-sm">
         <span
           >{
             t('footer.built_with')
