@@ -38,17 +38,21 @@ console.log('🔍 currentLabel:', currentLabel);
 
 <!-- Temporary debug info -->
 <div style="background: #ffeb3b; padding: 10px; font-family: monospace; border: 2px solid red;">
-  <strong>DEBUG INFO:</strong><br/>
-  current: {current}<br/>
-  rawPath: {rawPath}<br/>
-  unscoped: {unscoped}<br/>
-  path: {path}<br/>
-  <br/>
-  Generated URLs:<br/>
-  {items.map(item => (
-    <div>• {item.label}: {item.url}</div>
-  ))}
-  currentLabel: {currentLabel}<br/>
+  <strong>DEBUG INFO:</strong><br />
+  current: {current}<br />
+  rawPath: {rawPath}<br />
+  unscoped: {unscoped}<br />
+  path: {path}<br />
+  <br />
+  Generated URLs:<br />
+  {
+    items.map((item) => (
+      <div>
+        • {item.label}: {item.url}
+      </div>
+    ))
+  }
+  currentLabel: {currentLabel}<br />
 </div>
 
 <LangMenu client:load items={items} currentLabel={currentLabel} />
